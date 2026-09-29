@@ -1,50 +1,62 @@
+Humanity Score Checker — Publish TODAY Checklist
+You are live. Stripe is active. 1 skill published, $0.00 until first sale. This is your system to go from $0 → $19.
 
-# Humanity Score Checker - How to publish TODAY
+LIVE ASSETS (from your screenshots)
+GitHub: github.com/oluwafemidiakhoa/humanity-score-checker — LIVE with card
+Storefront: mcpmarket.com/sellers/human-os — You're all set up — Published
+X Thread: PLAY tweet 16 views (best) + Checker LIVE reply with GitHub card — 1m ago
+Earnings: $0.00 / 0 Transactions → changes to $15.20 after first $19 sale (20% fee) — 14 day hold
+How to Make Money While You Watch
+You already did steps 1-5. Only Step 6 left: Drive clicks.
 
-You already have 3 skills live ($1,284 month!). This is your 4th.
+1. Storefront is LIVE
+You have Human-OS workspace open. Don't create new listing. Your listing:
 
-## Steps to list on MCP Market:
+Name: humanity-score-checker
+Display: Humanity Score Checker — Fair Trade Label for AI
+Price: $19.00 Min $19
+Tagline: Fair Trade label for AI — Scores any AI product 0-100 + badge + viral teardown
+Status: Live
+2. Code — Minimal server.py (use this, not advert code)
 
-1. Go to: https://app.mcpmarket.com/oluwafemidiakhoa/seller/overview
-   (I see you have it open in screenshot)
+Your listing already points to GitHub. Ensure server.py in repo root:
 
-2. Click "Start selling" or "Listings" tab -> New Skill
-
-3. Copy/paste from SKILL.md:
-   - Name: humanity-score-checker
-   - Display Name: Humanity Score Checker — Fair Trade Label for AI
-   - Description: Use the description from SKILL.md
-   - Price: $19 (same as your $19 skills that sell)
-   - Category: Analytics & Monitoring
-
-4. For code: You can start with simple Python MCP server that implements score_product tool.
-   Minimal implementation below (save as server.py):
-
-```python
+Python
 from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("humanity-score-checker")
 
 @mcp.tool()
 def score_product(product_name: str, description: str, agency: int, value_capture: int, connection: int, sources: list, human_story: str):
     score = round((agency + value_capture + connection)/3)
-    badge_color = "green" if score>=70 else "yellow" if score>=40 else "red"
+    badge = "green" if score>=70 else "yellow" if score>=40 else "red"
     thread = [
-        f"1/ AI companions didn't make us lonely. They revealed we already were. I scored {product_name}: Humanity Score {score}/100 — here's the money breakdown 🧵",
-        f"2/ MONEY: {product_name} has proven pattern on mcpmarket.com. Data scraped live.",
-        f"3/ CONTRARIAN: Everyone thinks AI kills jobs. {product_name} scores {'HIGH' if score>=70 else 'LOW'} ({score}) because it preserves Agency — the scarcest asset. That's the moat.",
+        f"1/ AI didn't make us lonely. It revealed we were. I scored {product_name}: {score}/100 🧵",
+        f"2/ MONEY: {product_name} pattern live on mcpmarket.com — $19 x installs = TAM",
+        f"3/ CONTRARIAN: Scores {score} — {badge.upper()} — Agency is moat",
         f"4/ HUMAN: {human_story}",
-        f"5/ PLAY: I'm building Humanity Score OS — Fair Trade label for AI. Score >70 gets badge. Submit your AI product, I score it, you go viral."
+        f"5/ PLAY: Building Humanity Score OS — Fair Trade label. Score >70 gets badge. First 3 free."
     ]
-    return {"humanity_score": score, "badge_color": badge_color, "viral_thread": thread, "gateGuard_passed": len(sources)>=2 and len(human_story)>10}
+    return {"humanity_score": score, "badge_color": badge, "viral_thread": thread, "gateGuard": len(sources)>=2}
 
 if __name__ == "__main__":
     mcp.run()
-```
 
-5. Publish -> Link your Stripe (you already have $48 settling today so Stripe is connected)
+13 lines hidden
+Push to GitHub → MCP Market auto-syncs.
 
-6. After publish, post: "Just listed my 4th skill — Humanity Score Checker — scores any AI product for Fair Trade badge. Built from my viral thread [link]"
+3. Stripe — DONE
+You clicked Manage payouts on Stripe → Active → Now $19 sale = $15.20 settles automatically. You saw Sales settle to your Stripe balance on Earnings page.
 
-That's it. You already have workspace with $1,284 sales — this skill leverages your viral thread for distribution.
+4. Post — DONE, now PIN
+Your X post from 1m ago:
 
-Want me to generate the full server.py file for you?
+Code
+Checker LIVE: 【entity-github¦canonical_name=GitHub】.com/oluwafemidiakhoa/humanity-score-checker
+First 3 free = $500 value. Reply with your product.
+With GitHub card — Go pin your PLAY (16 views) tweet. That's your funnel top.
+
+5. First Sale Loop (passive)
+
+X card click → GitHub star → Click mcpmarket.com/sellers/human-os in README → Buy $19 → Your Earnings: TOTAL SALES $19.00 YOUR EARNINGS $15.20 TRANSACTIONS 1
+
+No manual delivery. MCP Market handles checkout.
