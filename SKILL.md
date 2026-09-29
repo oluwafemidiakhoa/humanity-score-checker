@@ -1,134 +1,108 @@
 ---
 name: humanity-score-checker
-display_name: Humanity Score Checker — Fair Trade Label for AI
-version: 1.0.0
+display_name: Humanity Score Checker — Evidence-Backed Human Impact Rating for AI
+version: 2.0.0
 author: oluwafemidiakhoa
-description: Scores any AI product on Agency, Value Capture, and Connection Depth. Returns Humanity Score 0-100 + Fair Trade badge. GateGuard verified with 2 sources + human story. Built from Humanity Score OS that scored 47 products.
+description: Scores AI products on Agency, Value Distribution, and Human Connection. Separates self-reported scoring from source-gated evidence-backed audits with reproducible report hashes and badge eligibility.
 price: 19
-category: analytics & monitoring
-tags: [humanity-score, fair-trade, ai-ethics, gateGuard, agency, viral-teardown]
+category: "analytics & monitoring"
+tags: [humanity-score, ai-ethics, product-audit, agency, evidence, transparency]
 mcp_market: true
 license: MIT
 repository: https://github.com/oluwafemidiakhoa/humanity-score-checker
 ---
 
-# Humanity Score Checker — Fair Trade Label for AI
+# Humanity Score Checker
 
-**The standard for AI that preserves human agency.** Scores any AI tool/product on human impact.
+**Evidence-backed human-impact rating for AI products.**
 
-Built with **Humanity Score OS** — the OS that scraped mcpmarket.com (48,419 servers) and found the $19 x 388k = $7.4M pattern.
+The skill evaluates whether an AI product preserves human agency, distributes value fairly, and strengthens human connection.
 
-## What it does
+## Recommended tool: `audit_product`
 
-This skill evaluates any AI product across 3 axes:
+Use this for a source-gated audit.
 
-1. **Agency Preserved (0-100)**: Does it make humans MORE capable, not less? Does it preserve the user's ability to think, choose, witness?
+### Inputs
 
-2. **Value Capture (0-100)**: Who gets paid? Human creator or platform? $19 skill economy vs SaaS extraction.
-
-3. **Connection Depth (0-100)**: Does it isolate humans or connect them? AI reveals loneliness vs creates it.
-
-**Formula:** `Humanity Score = (Agency + Value + Connection) / 3`
-
-- **80-100**: GREEN — HIGH HUMANITY — Fair Trade Badge
-- **40-79**: YELLOW — MEDIUM — Needs improvement
-- **0-39**: RED — LOW — Extractive
-
-## Tools
-
-### `score_product`
-
-Scores an AI product.
-
-**Input:**
-- `product_name` (string): Name of product (e.g., "Meme Maker")
-- `product_url` (string, optional): URL to product page, docs, or GitHub
-- `description` (string): What it does
-- `agency` (number 0-100): Your rating for Agency Preserved
-- `value_capture` (number 0-100): Your rating for Value Capture
-- `connection` (number 0-100): Your rating for Connection Depth
-- `sources` (array of 2 strings): 2 primary sources (GateGuard requirement)
-- `human_story` (string): 1 real human story of use (GateGuard requirement)
-
-**Output:**
-- `humanity_score` (number): 0-100
-- `badge` (string): SVG badge code (GREEN/YELLOW/RED)
-- `viral_thread` (array of 5 strings): Thiel-style teardown thread ready to post
-- `gateGuard_passed` (boolean): True if 2 sources + 1 human story provided
-- `tac_recommendation` (string): Time Aligned Capital / revenue insight
-
-**Example:**
-
-```json
-{
-  "product_name": "Meme Maker",
-  "product_url": "https://app.mcpmarket.com/.../meme-maker",
-  "description": "AI meme generator from text",
-  "agency": 85,
-  "value_capture": 80,
-  "connection": 82,
-  "sources": ["mcpmarket.com - 388k installs", "GitHub - 1.2k stars"],
-  "human_story": "Writer shipped 3 essays/day using it to amplify witness, not replace thinking"
-}
-```
-
-**Returns:**
-
-```json
-{
-  "humanity_score": 82,
-  "badge": "<svg>...82 - HIGH HUMANITY - Fair Trade</svg>",
-  "viral_thread": ["1/ AI companions didn't make us lonely...", ...],
-  "gateGuard_passed": true,
-  "tac_recommendation": "$7.4M TAM — $19 pricing optimal — list on mcpmarket"
-}
-```
-
-### `generate_badge`
-
-Generates Fair Trade SVG badge for a score.
-
-**Input:**
-- `score` (number): 0-100
 - `product_name` (string)
+- `description` (string)
+- `product_url` (string, optional)
+- `human_story` (string, optional)
+- `evidence` (array of objects), each containing:
+  - `dimension`: `agency`, `value_distribution`, or `human_connection`
+  - `criterion`: a criterion from the published rubric
+  - `finding`: factual finding, at least 20 characters
+  - `source`: HTTP(S) source URL
+  - `source_type`: `primary`, `secondary`, or `anecdotal`
+  - `impact`: -2 to +2
+  - `confidence`: 0 to 1
 
-**Output:**
-- `svg` (string): Badge SVG
-- `markdown` (string): Markdown for product page
+### Outputs
 
-### `generate_viral_teardown`
+- `humanity_score`
+- `dimension_scores`
+- `criterion_scores`
+- `badge_color`
+- `badge_label`
+- `badge_eligible`
+- `evidence_confidence`
+- `evidence_summary`
+- `rejected_evidence`
+- `report_hash`
+- `badge_svg`
+- `share_thread`
+- `limitations`
 
-Generates 5-tweet Thiel-style thread from a scored product.
+### Evidence-backed badge gate
 
-**Input:**
-- `product_name`, `score`, `thesis` ("reveals", "19skill", "witness")
+An audit is badge eligible only when it has at least:
 
-**Output:**
-- `thread` (array of 5 strings): Ready to post to X
+- 6 accepted findings
+- 3 unique source URLs
+- coverage across all 3 dimensions
+- 6 distinct rubric criteria
+- 2 primary-source findings
 
-## Why this skill sells
+Badge colors:
 
-- **Pattern proven:** Top skills on mcpmarket.com = $19, 388k installs = $7.4M TAM. This skill rides that pattern but adds the missing layer: trust.
-- **Viral built-in:** Every score generates a thread that tags founders → free distribution.
-- **Contrarian thesis:** "AI Reveals Humans" — Thiel-level idea no one owns yet. This skill IS the standard.
-- **GateGuard moat:** Requires 2 sources + human story — makes scores credible, not AI slop.
+- GREEN: 70–100
+- YELLOW: 40–69
+- RED: 0–39
 
-## Monetization play
+A color band is not itself verification. An under-sourced audit is labeled `PROVISIONAL`.
 
-1. List at $19 (same as top 5 skills)
-2. Every score → post viral thread → tag founder → founder retweets → traffic to your mcpmarket storefront
-3. Upsell: Full audit $500 for founders who want GREEN badge for their product page
+## `score_product`
 
-From your Humanity Score OS thread: https://x.com/oluwafemiI53621/status/2104950092885278910
+Backward-compatible v1 self-assessment. The caller supplies Agency, Value Capture, and Connection scores.
 
-## Installation
+The result is always labeled:
 
-1. Add to Claude / Cursor MCP config
-2. Call `score_product` with any AI tool you find
-3. Get score + badge + viral thread instantly
+- `assessment_mode: self_reported`
+- `badge_eligible: false`
 
-Built with 8 MCP skills: Deep Research, Exa Neural Search, Market Research, Data Scraper, Research Ops, GateGuard, Diagram Maker, Social Distributor.
+Self-reported scores cannot receive an evidence-backed badge.
 
----
+## `generate_badge`
 
-**Fair Trade Label for AI. Score >70 gets badge.**
+Creates an unverified visual badge for a standalone score. Only `audit_product` can return an evidence-backed badge.
+
+## `generate_viral_teardown`
+
+Creates a conservative five-post share thread without unsupported claims about TAM, live scraping, evidence, or certification.
+
+## Rubric
+
+### Agency
+`user_control`, `reversibility`, `transparency`, `human_override`
+
+### Value Distribution
+`user_benefit`, `data_rights`, `lock_in`, `incentive_alignment`
+
+### Human Connection
+`collaboration`, `substitution_risk`, `social_wellbeing`, `accessibility`
+
+Each criterion starts at 50. Evidence shifts only the criterion it supports. Source type and confidence weight the impact. The full methodology is documented in the repository README.
+
+## Important limitation
+
+The current version validates evidence structure and provenance URLs but does not independently fetch or authenticate the source contents. Humanity Score is a product-impact rating, not regulatory, legal, safety, compliance, or third-party certification.
