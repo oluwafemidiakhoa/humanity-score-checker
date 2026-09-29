@@ -22,3 +22,7 @@ def score_product(product_name: str, description: str, agency: int, value_captur
     badge = "green" if score>=70 else "yellow" if score>=40 else "red"
     thread = [f"1/ AI didn't make us lonely. I scored {product_name}: {score}/100", f"2/ MONEY: {product_name} pattern — $19 x installs = TAM", f"3/ CONTRARIAN: {badge.upper()} — Agency is moat", f"4/ HUMAN: {human_story}", f"5/ PLAY: Score >70 gets badge. First 3 free."]
     return {"humanity_score": score, "badge": badge, "thread": thread}
+
+MIT License
+Copyright (c) 2026 Oluwafemi Idiakhoa
+Permission is hereby granted... 
