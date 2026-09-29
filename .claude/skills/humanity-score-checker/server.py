@@ -1,17 +1,28 @@
 """Humanity Score Checker MCP server.
 
 v2 separates self-reported scoring from evidence-backed auditing.
+This entrypoint is configured for remote Streamable HTTP deployment.
 """
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
 from core import audit_evidence, score_self_reported, share_thread, unverified_badge
 
-mcp = FastMCP("humanity-score-checker")
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8000"))
+
+mcp = FastMCP(
+    "humanity-score-checker",
+    host=HOST,
+    port=PORT,
+    stateless_http=True,
+    json_response=True,
+)
 
 
 @mcp.tool()
@@ -111,4 +122,4 @@ def generate_viral_teardown(product_name: str, score: int) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="streamable-http")
