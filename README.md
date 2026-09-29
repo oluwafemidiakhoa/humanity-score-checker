@@ -1,103 +1,154 @@
-# Humanity Score Checker — A Fair-Trade Label for AI
+# Humanity Score Checker
 
-**Measure how well an AI product serves people—not just engagement, automation, or revenue.**
+**Evidence-backed human-impact rating for AI products.**
 
-Humanity Score Checker evaluates an AI product on a **0–100 Humanity Score**, assigns a simple **GREEN / YELLOW / RED badge**, and generates a shareable five-post teardown explaining the result.
+Humanity Score Checker asks a simple question: **does an AI product leave people more capable, fairly served, and meaningfully connected?**
 
-Built from **$7.4M TAM research**, including analysis of the MCP ecosystem, where the #1 Meme Maker has reached **388K installs on mcpmarket.com**.
+Version 2 separates two very different things:
 
-**Live:** `app.mcpmarket.com/sellers/human-os`  
-**Price:** $19
+- **Self-assessment** — a founder/user can enter three 0–100 ratings. This is useful for reflection, but it is always labeled `SELF-ASSESSED` and is **not badge eligible**.
+- **Evidence-backed audit** — structured findings with source URLs are scored against a published rubric. Only audits that meet evidence coverage gates can receive an `EVIDENCE-BACKED` badge.
 
-## How It Works
+**MCPMarket launch price:** $19  
+**Repository:** `github.com/oluwafemidiakhoa/humanity-score-checker`
 
-Provide:
+> Humanity Score is a product-impact rating. It is not a regulatory, legal, safety, compliance, or third-party certification.
 
-- `product_name`
-- `description`
-- `agency`
-- `value_capture`
-- `connection`
-- `sources`
-- `human_story`
+## Why v2 exists
 
-The checker evaluates three core dimensions:
+The original prototype averaged three user-supplied numbers. That made it fast, but not independently meaningful. v2 keeps that interface for compatibility while moving the product toward a reproducible, source-gated audit.
 
-**Agency** — Does the product increase human choice, control, and capability?
+There are no hard-coded TAM claims, no claim that data was scraped live, and no claim that a self-entered score is verified.
 
-**Value Capture** — Does the product create meaningful value for people rather than simply extracting attention, data, or dependency?
+## Rubric
 
-**Human Connection** — Does the product strengthen human relationships, creativity, participation, or real-world connection?
+Each of 12 criteria starts at a neutral score of 50. Evidence shifts only the criterion it supports.
 
-It then returns:
+### Agency
+- `user_control`
+- `reversibility`
+- `transparency`
+- `human_override`
 
-- **Humanity Score:** 0–100
-- **Badge:** GREEN, YELLOW, or RED
-- **Viral Teardown:** five ready-to-share posts explaining the score
+### Value Distribution
+- `user_benefit`
+- `data_rights`
+- `lock_in`
+- `incentive_alignment`
 
-## Badge System
+### Human Connection
+- `collaboration`
+- `substitution_risk`
+- `social_wellbeing`
+- `accessibility`
 
-**GREEN — 70–100**  
-Strong alignment with human agency, value creation, and connection.
+Evidence uses:
 
-**YELLOW — 40–69**  
-Mixed performance. The product creates value but has meaningful areas for improvement.
+- `impact`: `-2` to `+2`
+- `confidence`: `0` to `1`
+- `source_type`: `primary`, `secondary`, or `anecdotal`
 
-**RED — 0–39**  
-Weak alignment with the Humanity Score framework and significant room for redesign.
+Source type weights are 1.0, 0.75, and 0.50 respectively. Scores are clamped to 0–100.
 
-## MCP Tool
+## Badge thresholds
 
-`score_product` — Python FastMCP server
+- **GREEN:** 70–100
+- **YELLOW:** 40–69
+- **RED:** 0–39
 
-```python
-@mcp.tool()
-def score_product(
-    product_name: str,
-    description: str,
-    agency: int,
-    value_capture: int,
-    connection: int,
-    sources: list,
-    human_story: str
-):
-    score = round((agency + value_capture + connection) / 3)
+A color does **not** automatically mean the badge is evidence-backed.
 
-    badge = (
-        "green" if score >= 70
-        else "yellow" if score >= 40
-        else "red"
-    )
+To become badge eligible, an audit must contain at least:
 
-    thread = [
-        f"1/ AI didn't make us lonely. I scored {product_name}: {score}/100",
-        f"2/ MONEY: {product_name} pattern — $19 × installs = TAM",
-        f"3/ CONTRARIAN: {badge.upper()} — Agency is the moat",
-        f"4/ HUMAN: {human_story}",
-        f"5/ PLAY: Score above 70 earns the badge. First 3 free."
-    ]
+- 6 accepted findings
+- 3 unique source URLs
+- evidence across all 3 dimensions
+- 6 distinct rubric criteria
+- 2 primary-source findings
 
-    return {
-        "humanity_score": score,
-        "badge": badge,
-        "thread": thread
+Until those gates pass, the badge is marked **PROVISIONAL**.
+
+## Recommended tool: `audit_product`
+
+```json
+{
+  "product_name": "Example AI",
+  "product_url": "https://example.com",
+  "description": "AI assistant for collaborative research",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Users can disable automated actions and choose manual control at any time.",
+      "source": "https://example.com/docs/control",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1.0
     }
+  ],
+  "human_story": "Optional reported user context; it is not silently treated as verified evidence."
+}
 ```
 
-## The Idea
+The result includes:
 
-AI products are usually measured by speed, accuracy, engagement, revenue, or automation.
+- Humanity Score 0–100
+- criterion and dimension scores
+- GREEN / YELLOW / RED band
+- evidence coverage and confidence
+- rejected-evidence reasons
+- deterministic SHA-256 report hash
+- evidence-backed or provisional badge
+- factual five-post share thread
+- limitations
 
-Humanity Score asks a different question:
+## Backward-compatible tool: `score_product`
 
-**Does this product leave the human being more capable, more connected, and more in control?**
+The original interface still works:
 
-Think of it as a **fair-trade label for AI**—a simple, public signal for products designed to create value without diminishing the people using them.
+```text
+product_name, description, agency, value_capture, connection, sources, human_story
+```
+
+But the output is explicitly:
+
+```text
+assessment_mode = self_reported
+badge_eligible = false
+```
+
+This prevents a founder from entering `100, 100, 100` and presenting the result as an independently supported badge.
+
+## Other tools
+
+### `generate_badge`
+Generates an **UNVERIFIED** visual badge for a standalone score. Evidence-backed badges are issued only from `audit_product`.
+
+### `generate_viral_teardown`
+Generates conservative share copy without inventing TAM, live-scraping, source, or certification claims.
+
+## Running locally
+
+```bash
+python -m pip install "mcp>=1.0.0"
+python server.py
+```
+
+## Testing
+
+The scoring core uses only the Python standard library.
+
+```bash
+python -m unittest discover -s tests -v
+python -m py_compile core.py server.py
+```
+
+## Methodology limitations
+
+v2 validates evidence structure, URLs, source types, coverage, and deterministic scoring. It does **not** independently crawl the web or authenticate the contents behind a URL. An MCP host or researcher can gather the evidence first and pass it to `audit_product`.
+
+A later version can add independent retrieval, source snapshots, signed audit receipts, appeals, and a public badge registry.
 
 ## License
 
-MIT License
-
-Copyright (c) 2026 Oluwafemi Idiakhoa
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files, subject to the terms of the MIT License.
+MIT © 2026 Oluwafemi Idiakhoa

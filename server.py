@@ -1,12 +1,52 @@
+"""Humanity Score Checker MCP server.
+
+v2 separates self-reported scoring from evidence-backed auditing.
 """
-Humanity Score Checker - MCP Server
-Ready to publish to MCP Market
-Price: $19 | Category: Analytics & Monitoring
-"""
+
+from __future__ import annotations
+
+from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from core import audit_evidence, score_self_reported, share_thread, unverified_badge
+
 mcp = FastMCP("humanity-score-checker")
+
+
+@mcp.tool()
+def audit_product(
+    product_name: str,
+    description: str,
+    evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+) -> dict[str, Any]:
+    """Run the recommended evidence-backed Humanity Score audit.
+
+    Evidence items require:
+    - dimension: agency | value_distribution | human_connection
+    - criterion: one criterion from the published rubric
+    - finding: factual finding (20+ characters)
+    - source: http(s) provenance URL
+    - source_type: primary | secondary | anecdotal
+    - impact: -2 to +2
+    - confidence: 0 to 1
+
+    The tool computes criterion and dimension scores, evidence coverage,
+    confidence, a deterministic report hash, and badge eligibility.
+    """
+
+    result = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    result["share_thread"] = share_thread(result)
+    return result
+
 
 @mcp.tool()
 def score_product(
@@ -15,82 +55,60 @@ def score_product(
     agency: int,
     value_capture: int,
     connection: int,
-    sources: list,
-    human_story: str
-) -> dict:
+    sources: list[str],
+    human_story: str,
+    product_url: str = "",
+) -> dict[str, Any]:
+    """Backward-compatible self-assessment from the v1 interface.
+
+    This path is deliberately labeled self-reported. It never issues an
+    evidence-backed badge. Use audit_product for a source-gated audit.
     """
-    Scores any AI product on Humanity Score 0-100.
-    Requires 2 sources + 1 human story (GateGuard).
-    Returns score + Fair Trade badge + viral Thiel thread.
+
+    return score_self_reported(
+        product_name=product_name,
+        description=description,
+        agency=agency,
+        value_capture=value_capture,
+        connection=connection,
+        sources=sources,
+        human_story=human_story,
+        product_url=product_url,
+    )
+
+
+@mcp.tool()
+def generate_badge(product_name: str, score: int) -> dict[str, Any]:
+    """Generate an UNVERIFIED visual badge for a standalone score.
+
+    Evidence-backed badges are issued only by audit_product after coverage
+    gates pass.
     """
-    # Calculate
-    score = round((agency + value_capture + connection) / 3)
-    
-    # Badge color
-    if score >= 70:
-        badge_color = "green"
-        badge_label = "HIGH HUMANITY - FAIR TRADE"
-    elif score >= 40:
-        badge_color = "yellow"
-        badge_label = "MEDIUM - NEEDS WORK"
-    else:
-        badge_color = "red"
-        badge_label = "LOW - EXTRACTIVE"
-    
-    # GateGuard check
-    gate_passed = len(sources) >= 2 and len(human_story) > 10
-    
-    # Viral thread generation (Thiel-style)
-    thread = [
-        f"1/ AI companions didn't make us lonely. They revealed we already were. I scored {product_name}: Humanity Score {score}/100 — here's the money breakdown 🧵",
-        f"2/ MONEY: {product_name} — {description[:80]}... Pattern from mcpmarket.com: top skills = $19 x 388k installs = $7.4M TAM. Data scraped live. Sources: {', '.join(sources[:2])}",
-        f"3/ CONTRARIAN: Everyone thinks AI kills jobs. {product_name} scores {'HIGH' if score>=70 else 'LOW'} ({score}) because it {'preserves Agency — the scarcest asset. That's the moat.' if score>=70 else 'reduces Agency. It makes humans less capable. No moat.'}",
-        f"4/ HUMAN: {human_story} The last human job isn't writing. It's being trusted.",
-        f"5/ PLAY: I'm building Humanity Score OS — Fair Trade label for AI. Score >70 gets badge. Submit your AI product, I score it, you go viral. Reply with your product. First 5 free audits = $500 normally. https://x.com/oluwafemiI53621/status/2104950092885278910"
-    ]
-    
-    # Badge SVG
-    badge_svg = f"""<svg width="200" height="40" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="40" fill="{'#22c55e' if badge_color=='green' else '#eab308' if badge_color=='yellow' else '#ef4444'}" rx="6"/>
-  <text x="100" y="25" font-family="monospace" font-size="11" fill="white" text-anchor="middle" font-weight="bold">{product_name[:15]}: {score}/100 {badge_label[:12]}</text>
-</svg>"""
-    
+
+    return unverified_badge(product_name, score)
+
+
+@mcp.tool()
+def generate_viral_teardown(product_name: str, score: int) -> dict[str, Any]:
+    """Generate conservative social copy for a standalone score.
+
+    Because no evidence bundle is supplied, this output does not make source,
+    TAM, or certification claims.
+    """
+
+    if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 100:
+        raise ValueError("score must be an integer from 0 to 100")
     return {
-        "humanity_score": score,
-        "badge_label": badge_label,
-        "badge_color": badge_color,
-        "badge_svg": badge_svg,
-        "viral_thread": thread,
-        "gateGuard_passed": gate_passed,
-        "tac_insight": f"TAM: $7.4M pattern — Price $19 optimal — {'List now, green badge sells' if score>=70 else 'Improve agency before listing'}",
-        "published_from": "Humanity Score OS — https://x.com/oluwafemiI53621/status/2104950092885278910"
+        "thread": [
+            f"1/ I ran {product_name} through the Humanity Score framework: {score}/100.",
+            "2/ The framework examines three questions: does the product preserve human agency, distribute value fairly, and strengthen human connection?",
+            "3/ A number alone is not certification. Evidence coverage and provenance determine whether an audit is badge-eligible.",
+            "4/ The evidence-backed audit publishes dimension scores, accepted findings, source coverage, limitations, and a reproducible report hash.",
+            "5/ Humanity Score is a product-impact rating for AI. It is not a regulatory, legal, safety, or compliance certification.",
+        ],
+        "verification_status": "unverified",
     }
 
-@mcp.tool()
-def generate_badge(product_name: str, score: int) -> dict:
-    """Generates Fair Trade SVG badge for any score."""
-    color = "#22c55e" if score>=70 else "#eab308" if score>=40 else "#ef4444"
-    label = "HIGH HUMANITY" if score>=70 else "MEDIUM" if score>=40 else "LOW"
-    svg = f'<svg width="200" height="40"><rect width="200" height="40" fill="{color}" rx="6"/><text x="100" y="25" font-family="monospace" font-size="12" fill="white" text-anchor="middle" font-weight="bold">{score}/100 {label}</text></svg>'
-    return {"svg": svg, "markdown": f"![Humanity Score {score}](badge.svg)", "score": score}
-
-@mcp.tool()
-def generate_viral_teardown(product_name: str, score: int, thesis: str = "19skill") -> dict:
-    """Generates 5-tweet Thiel-style thread for any product."""
-    hooks = {
-        "reveals": "AI companions didn't make us lonely. They revealed we already were.",
-        "19skill": "Everyone builds SaaS. Real money is $19 skills with 388k installs.",
-        "witness": "In 5 years AI does everything. Last human job is trusted witness."
-    }
-    hook = hooks.get(thesis, hooks["19skill"])
-    thread = [
-        f"1/ {hook} I scored {product_name}: {score}/100",
-        f"2/ MONEY: {product_name} — $19 x 388k = $7.4M pattern. Data live.",
-        f"3/ CONTRARIAN: Scores {'HIGH' if score>=70 else 'LOW'} because it {'preserves' if score>=70 else 'reduces'} Agency.",
-        f"4/ HUMAN: Real story — this is what witness looks like.",
-        f"5/ Fair Trade label for AI. Score >70 gets badge. Reply with product."
-    ]
-    return {"thread": thread}
 
 if __name__ == "__main__":
     mcp.run()
