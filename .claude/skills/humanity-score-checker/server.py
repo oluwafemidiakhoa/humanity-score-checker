@@ -1,7 +1,7 @@
 """Humanity Score Checker MCP server.
 
 v2 separates self-reported scoring from evidence-backed auditing.
-This entrypoint is configured for broad Streamable HTTP client compatibility.
+Configured for managed remote Streamable HTTP deployment.
 """
 
 from __future__ import annotations
@@ -16,13 +16,15 @@ from core import audit_evidence, score_self_reported, share_thread, unverified_b
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 
-# Keep the Streamable HTTP transport in its broadly compatible, session-based
-# mode. Some hosted MCP gateways discover capabilities by opening a standard
-# MCP session and then calling tools/list.
+# This is the last configuration verified to reach Running on MCPMarket.
+# Stateless JSON responses also work with the official MCP client and avoid
+# server-side session affinity requirements in managed gateways.
 mcp = FastMCP(
     "humanity-score-checker",
     host=HOST,
     port=PORT,
+    stateless_http=True,
+    json_response=True,
 )
 
 
@@ -34,21 +36,7 @@ def audit_product(
     product_url: str = "",
     human_story: str = "",
 ) -> dict[str, Any]:
-    """Run the recommended evidence-backed Humanity Score audit.
-
-    Evidence items require:
-    - dimension: agency | value_distribution | human_connection
-    - criterion: one criterion from the published rubric
-    - finding: factual finding (20+ characters)
-    - source: http(s) provenance URL
-    - source_type: primary | secondary | anecdotal
-    - impact: -2 to +2
-    - confidence: 0 to 1
-
-    The tool computes criterion and dimension scores, evidence coverage,
-    confidence, a deterministic report hash, and badge eligibility.
-    """
-
+    """Run the recommended evidence-backed Humanity Score audit."""
     result = audit_evidence(
         product_name=product_name,
         description=description,
@@ -71,12 +59,10 @@ def score_product(
     human_story: str,
     product_url: str = "",
 ) -> dict[str, Any]:
-    """Backward-compatible self-assessment from the v1 interface.
+    """Run a backward-compatible self-assessment.
 
-    This path is deliberately labeled self-reported. It never issues an
-    evidence-backed badge. Use audit_product for a source-gated audit.
+    This path is deliberately self-reported and never badge eligible.
     """
-
     return score_self_reported(
         product_name=product_name,
         description=description,
@@ -91,23 +77,13 @@ def score_product(
 
 @mcp.tool()
 def generate_badge(product_name: str, score: int) -> dict[str, Any]:
-    """Generate an UNVERIFIED visual badge for a standalone score.
-
-    Evidence-backed badges are issued only by audit_product after coverage
-    gates pass.
-    """
-
+    """Generate an UNVERIFIED visual badge for a standalone score."""
     return unverified_badge(product_name, score)
 
 
 @mcp.tool()
 def generate_viral_teardown(product_name: str, score: int) -> dict[str, Any]:
-    """Generate conservative social copy for a standalone score.
-
-    Because no evidence bundle is supplied, this output does not make source,
-    TAM, or certification claims.
-    """
-
+    """Generate conservative share copy without unsupported claims."""
     if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 100:
         raise ValueError("score must be an integer from 0 to 100")
     return {
