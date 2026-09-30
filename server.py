@@ -1,7 +1,7 @@
 """Humanity Score Checker MCP server.
 
 v2 separates self-reported scoring from evidence-backed auditing.
-This entrypoint is configured for remote Streamable HTTP deployment.
+This entrypoint is configured for broad Streamable HTTP client compatibility.
 """
 
 from __future__ import annotations
@@ -16,12 +16,13 @@ from core import audit_evidence, score_self_reported, share_thread, unverified_b
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 
+# Keep the Streamable HTTP transport in its broadly compatible, session-based
+# mode. Some hosted MCP gateways discover capabilities by opening a standard
+# MCP session and then calling tools/list.
 mcp = FastMCP(
     "humanity-score-checker",
     host=HOST,
     port=PORT,
-    stateless_http=True,
-    json_response=True,
 )
 
 
