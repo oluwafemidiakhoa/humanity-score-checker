@@ -15,51 +15,26 @@ jobs:
           python-version: "3.11"
 
       - name: Unit tests
-        run: python -m unittest discover -s tests -v
+        run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Syntax check
-        run: python -m py_compile core.py server.py
+        run: python -m py_compile core.py server.py tests/mcp_client_smoke.py
 
       - name: Install runtime
         run: python -m pip install .
 
-      - name: Start MCP server and wait for initialize
+      - name: Official MCP client discovery smoke
         run: |
           PORT=8000 python server.py > /tmp/humanity-mcp.log 2>&1 &
-          echo $! > /tmp/humanity-mcp.pid
-          for i in $(seq 1 30); do
-            if curl --fail-with-body -sS               -H 'Content-Type: application/json'               -H 'Accept: application/json, text/event-stream'               -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci-smoke","version":"1.0"}}}'               http://127.0.0.1:8000/mcp > /tmp/init.json
-            then
-              cat /tmp/init.json
-              exit 0
-            fi
-            sleep 1
-          done
-          cat /tmp/humanity-mcp.log
-          exit 1
-
-      - name: MCP tools/list smoke
-        run: |
-          TOOLS_RESPONSE=$(curl --fail-with-body -sS             -H 'Content-Type: application/json'             -H 'Accept: application/json, text/event-stream'             -H 'MCP-Protocol-Version: 2025-06-18'             -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'             http://127.0.0.1:8000/mcp)
-          echo "$TOOLS_RESPONSE"
-          echo "$TOOLS_RESPONSE" | grep -q 'audit_product'
-          echo "$TOOLS_RESPONSE" | grep -q 'score_product'
-          echo "$TOOLS_RESPONSE" | grep -q 'generate_badge'
-          echo "$TOOLS_RESPONSE" | grep -q 'generate_viral_teardown'
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true; cat /tmp/humanity-mcp.log' EXIT
+          python tests/mcp_client_smoke.py http://127.0.0.1:8000/mcp
 
       - name: Docker build
         run: docker build -t humanity-score-checker:ci .
 
-      - name: Docker runtime smoke
+      - name: Docker runtime official-client smoke
         run: |
           docker run -d --name humanity-score-ci -e PORT=8010 -p 8010:8010 humanity-score-checker:ci
           trap 'docker logs humanity-score-ci || true; docker rm -f humanity-score-ci || true' EXIT
-          for i in $(seq 1 30); do
-            if curl --fail-with-body -sS               -H 'Content-Type: application/json'               -H 'Accept: application/json, text/event-stream'               -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"docker-smoke","version":"1.0"}}}'               http://127.0.0.1:8010/mcp > /tmp/docker-init.json
-            then
-              cat /tmp/docker-init.json
-              exit 0
-            fi
-            sleep 1
-          done
-          exit 1
+          python tests/mcp_client_smoke.py http://127.0.0.1:8010/mcp
