@@ -23,14 +23,23 @@ jobs:
       - name: Install runtime
         run: python -m pip install .
 
-      - name: Start MCP server and wait for initialize
+      - name: Start MCP server
         run: |
           PORT=8000 python server.py > /tmp/humanity-mcp.log 2>&1 &
           echo $! > /tmp/humanity-mcp.pid
           for i in $(seq 1 30); do
-            if curl --fail-with-body -sS               -H 'Content-Type: application/json'               -H 'Accept: application/json, text/event-stream'               -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci-smoke","version":"1.0"}}}'               http://127.0.0.1:8000/mcp > /tmp/init.json
+            if python - <<'PY'
+import socket
+s = socket.socket()
+s.settimeout(1)
+try:
+    s.connect(("127.0.0.1", 8000))
+except OSError:
+    raise SystemExit(1)
+finally:
+    s.close()
+PY
             then
-              cat /tmp/init.json
               exit 0
             fi
             sleep 1
@@ -38,28 +47,78 @@ jobs:
           cat /tmp/humanity-mcp.log
           exit 1
 
-      - name: MCP tools/list smoke
+      - name: Official MCP client discovery smoke
         run: |
-          TOOLS_RESPONSE=$(curl --fail-with-body -sS             -H 'Content-Type: application/json'             -H 'Accept: application/json, text/event-stream'             -H 'MCP-Protocol-Version: 2025-06-18'             -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'             http://127.0.0.1:8000/mcp)
-          echo "$TOOLS_RESPONSE"
-          echo "$TOOLS_RESPONSE" | grep -q 'audit_product'
-          echo "$TOOLS_RESPONSE" | grep -q 'score_product'
-          echo "$TOOLS_RESPONSE" | grep -q 'generate_badge'
-          echo "$TOOLS_RESPONSE" | grep -q 'generate_viral_teardown'
+          python - <<'PY'
+import asyncio
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+
+async def main():
+    async with streamablehttp_client("http://127.0.0.1:8000/mcp") as (read, write, _):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.list_tools()
+            names = {tool.name for tool in result.tools}
+            expected = {
+                "audit_product",
+                "score_product",
+                "generate_badge",
+                "generate_viral_teardown",
+            }
+            missing = expected - names
+            if missing:
+                raise SystemExit(f"Missing tools: {sorted(missing)}")
+            print("Detected tools:", sorted(names))
+
+asyncio.run(main())
+PY
 
       - name: Docker build
         run: docker build -t humanity-score-checker:ci .
 
-      - name: Docker runtime smoke
+      - name: Docker runtime official-client smoke
         run: |
           docker run -d --name humanity-score-ci -e PORT=8010 -p 8010:8010 humanity-score-checker:ci
           trap 'docker logs humanity-score-ci || true; docker rm -f humanity-score-ci || true' EXIT
           for i in $(seq 1 30); do
-            if curl --fail-with-body -sS               -H 'Content-Type: application/json'               -H 'Accept: application/json, text/event-stream'               -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"docker-smoke","version":"1.0"}}}'               http://127.0.0.1:8010/mcp > /tmp/docker-init.json
+            if python - <<'PY'
+import socket
+s = socket.socket()
+s.settimeout(1)
+try:
+    s.connect(("127.0.0.1", 8010))
+except OSError:
+    raise SystemExit(1)
+finally:
+    s.close()
+PY
             then
-              cat /tmp/docker-init.json
-              exit 0
+              break
             fi
             sleep 1
           done
-          exit 1
+          python - <<'PY'
+import asyncio
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+
+async def main():
+    async with streamablehttp_client("http://127.0.0.1:8010/mcp") as (read, write, _):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.list_tools()
+            names = {tool.name for tool in result.tools}
+            expected = {
+                "audit_product",
+                "score_product",
+                "generate_badge",
+                "generate_viral_teardown",
+            }
+            missing = expected - names
+            if missing:
+                raise SystemExit(f"Missing tools in Docker: {sorted(missing)}")
+            print("Docker detected tools:", sorted(names))
+
+asyncio.run(main())
+PY
