@@ -1,11 +1,11 @@
 """Humanity Score Checker MCP server.
 
-v2 separates self-reported scoring from evidence-backed auditing.
-Configured for managed remote Streamable HTTP deployment.
+Supports stdio for managed MCP hosts and Streamable HTTP for direct hosting.
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 from typing import Any
 
@@ -16,9 +16,6 @@ from core import audit_evidence, score_self_reported, share_thread, unverified_b
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 
-# This is the last configuration verified to reach Running on MCPMarket.
-# Stateless JSON responses also work with the official MCP client and avoid
-# server-side session affinity requirements in managed gateways.
 mcp = FastMCP(
     "humanity-score-checker",
     host=HOST,
@@ -98,5 +95,17 @@ def generate_viral_teardown(product_name: str, score: int) -> dict[str, Any]:
     }
 
 
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Humanity Score Checker MCP server")
+    parser.add_argument(
+        "--transport",
+        choices=("stdio", "streamable-http"),
+        default=os.getenv("MCP_TRANSPORT", "streamable-http"),
+        help="MCP transport to use",
+    )
+    args = parser.parse_args()
+    mcp.run(transport=args.transport)
+
+
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    main()
