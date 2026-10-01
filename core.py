@@ -305,6 +305,8 @@ def audit_evidence(
         },
         "strongest_positive": strongest_positive,
         "strongest_concern": strongest_concern,
+        "accepted_evidence": valid,
+        "source_urls": source_urls,
         "rejected_evidence": rejected,
         "report_hash": report_hash,
         "rubric_version": RUBRIC_VERSION,
