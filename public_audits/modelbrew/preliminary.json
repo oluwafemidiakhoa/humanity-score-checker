@@ -1,0 +1,96 @@
+{
+  "product_name": "ModelBrew",
+  "audit_date": "2026-10-01",
+  "status": "PRELIMINARY",
+  "score": 62,
+  "dimension_scores": {
+    "agency": 65,
+    "value_distribution": 65,
+    "human_connection": 55
+  },
+  "evidence_confidence": "moderate",
+  "rubric_version": "2.0.0",
+  "report_hash": "40594ceef9a22a8879ff4e11237294891cc26db80d61e35d13a3439b6e6fb46e",
+  "note": "Prepared from public primary-source documentation. ModelBrew has not yet been asked to verify the factual interpretation.",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "ModelBrew states that trained adapters can be downloaded and run on the user's own infrastructure rather than requiring continued hosted use.",
+      "source": "https://modelbrew.ai/faq",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "ModelBrew documents account deletion and data deletion controls, including a 14-day dataset retention window after a run completes.",
+      "source": "https://modelbrew.ai/terms",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "ModelBrew documents source provenance, hash-chained audit history, and signed erasure certificates for its governed knowledge layer.",
+      "source": "https://modelbrew.ai/live-cl",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "ModelBrew's terms state that users retain intellectual-property rights in uploaded datasets and that uploaded data is not used to train ModelBrew's own models.",
+      "source": "https://modelbrew.ai/terms",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "ModelBrew says trained models and fact stores are exportable, with adapter weights and knowledge data portable outside the service.",
+      "source": "https://modelbrew.ai/faq",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "ModelBrew publishes per-token pricing, estimates costs before runs, and automatically refunds credits when a training job fails due to a system error.",
+      "source": "https://modelbrew.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "ModelBrew documents multi-department and team workflows, role-based access, and audit logging intended for organizational use.",
+      "source": "https://modelbrew.ai/all-features",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.75
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "ModelBrew offers a free tier with no credit card required and provides both web and API paths for starting training.",
+      "source": "https://modelbrew.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_gaps": [
+    "agency.human_override",
+    "value_distribution.user_benefit",
+    "human_connection.substitution_risk",
+    "human_connection.social_wellbeing"
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
