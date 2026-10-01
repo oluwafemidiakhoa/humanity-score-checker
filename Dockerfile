@@ -17,4 +17,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
 
 EXPOSE 8000
 
-CMD ["python", "server.py"]
+# MCPMarket managed deployments communicate over stdio.
+# Direct HTTP hosts can override this command with:
+#   python server.py --transport streamable-http
+CMD ["python", "server.py", "--transport", "stdio"]

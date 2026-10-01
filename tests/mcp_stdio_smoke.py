@@ -1,4 +1,4 @@
-"""Verify Humanity Score MCP over stdio."""
+"""Verify Humanity Score MCP over its managed-host default stdio transport."""
 
 from __future__ import annotations
 
@@ -17,9 +17,10 @@ EXPECTED_TOOLS = {
 
 
 async def main() -> None:
+    # Intentionally omit --transport: managed deployments must default to stdio.
     params = StdioServerParameters(
         command=sys.executable,
-        args=["server.py", "--transport", "stdio"],
+        args=["server.py"],
     )
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:

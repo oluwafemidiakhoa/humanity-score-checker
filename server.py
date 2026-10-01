@@ -1,6 +1,7 @@
 """Humanity Score Checker MCP server.
 
-Supports stdio for managed MCP hosts and Streamable HTTP for direct hosting.
+Defaults to stdio for managed MCP hosts. Streamable HTTP remains available
+for direct hosting via --transport streamable-http or MCP_TRANSPORT.
 """
 
 from __future__ import annotations
@@ -100,8 +101,8 @@ def main() -> None:
     parser.add_argument(
         "--transport",
         choices=("stdio", "streamable-http"),
-        default=os.getenv("MCP_TRANSPORT", "streamable-http"),
-        help="MCP transport to use",
+        default=os.getenv("MCP_TRANSPORT", "stdio"),
+        help="MCP transport to use (default: stdio)",
     )
     args = parser.parse_args()
     mcp.run(transport=args.transport)
