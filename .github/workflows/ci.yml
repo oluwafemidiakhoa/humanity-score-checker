@@ -28,7 +28,7 @@ jobs:
 
       - name: Official MCP HTTP discovery smoke
         run: |
-          PORT=8000 python server.py > /tmp/humanity-mcp.log 2>&1 &
+          PORT=8000 python server.py --transport streamable-http > /tmp/humanity-mcp.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true; cat /tmp/humanity-mcp.log' EXIT
           python tests/mcp_client_smoke.py http://127.0.0.1:8000/mcp
@@ -36,8 +36,8 @@ jobs:
       - name: Docker build
         run: docker build -t humanity-score-checker:ci .
 
-      - name: Docker runtime official-client smoke
+      - name: Docker runtime official-client HTTP smoke
         run: |
-          docker run -d --name humanity-score-ci -e PORT=8010 -p 8010:8010 humanity-score-checker:ci
+          docker run -d --name humanity-score-ci -e PORT=8010 -p 8010:8010 humanity-score-checker:ci python server.py --transport streamable-http
           trap 'docker logs humanity-score-ci || true; docker rm -f humanity-score-ci || true' EXIT
           python tests/mcp_client_smoke.py http://127.0.0.1:8010/mcp
