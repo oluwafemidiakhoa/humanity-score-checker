@@ -14,6 +14,7 @@ EXPECTED_TOOLS = {
     "score_product",
     "generate_badge",
     "generate_viral_teardown",
+    "create_audit_receipt",
 }
 
 
