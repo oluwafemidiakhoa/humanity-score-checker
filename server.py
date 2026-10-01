@@ -12,6 +12,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
 from core import audit_evidence, score_self_reported, share_thread, unverified_badge
 
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -44,6 +45,31 @@ def audit_product(
     )
     result["share_thread"] = share_thread(result)
     return result
+
+
+@mcp.tool()
+def create_audit_receipt(
+    product_name: str,
+    description: str,
+    evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+    audit_date: str | None = None,
+) -> dict[str, Any]:
+    """Run an evidence-backed audit and return a shareable verification receipt."""
+    audit = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    receipt = build_public_receipt(audit, audit_date=audit_date)
+    return {
+        "receipt": receipt,
+        "markdown": receipt_markdown(receipt),
+        "html": receipt_html(receipt),
+    }
 
 
 @mcp.tool()
