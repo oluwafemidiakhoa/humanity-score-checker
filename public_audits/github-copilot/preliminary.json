@@ -1,0 +1,160 @@
+{
+  "product_name": "GitHub Copilot",
+  "product_url": "https://github.com/features/copilot",
+  "description": "AI coding assistant and agent platform integrated across GitHub, IDEs, CLI, code review, and organization workflows.",
+  "audit_date": "2026-10-01",
+  "status": "PRELIMINARY",
+  "humanity_score": 65,
+  "dimension_scores": {
+    "agency": 68,
+    "value_distribution": 64,
+    "human_connection": 62
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 74,
+      "reversibility": 61,
+      "transparency": 61,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 61,
+      "data_rights": 74,
+      "lock_in": 60,
+      "incentive_alignment": 62
+    },
+    "human_connection": {
+      "collaboration": 61,
+      "substitution_risk": 75,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_confidence": "moderate",
+  "rubric_version": "2.0.0",
+  "report_hash": "57fc4744ca9ba6f945f8a00f3a6b9cf683c57a54e4b4c121b86904004338198d",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Organization owners can enable or disable Copilot features, agents, and models through organization policies, and can grant or revoke access for members.",
+      "source": "https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-organization/manage-policies?tool=vscode",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Organizations can revoke Copilot access for members and disable individual Copilot features or models through organization and enterprise policy controls.",
+      "source": "https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-organization",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "GitHub documents which Copilot data types are processed, how organization policies work, and how model and usage controls are configured.",
+      "source": "https://github.com/features/copilot/plans",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "GitHub states that inline Copilot suggestions are only applied when the user explicitly accepts them, and users are responsible for reviewing and validating generated suggestions.",
+      "source": "https://docs.github.com/en/copilot/responsible-use/inline-suggestions",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "GitHub publishes free and paid Copilot plans with included features, usage allowances, and support for individual, business, and enterprise users.",
+      "source": "https://github.com/features/copilot/plans",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.85
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Copilot Business and Enterprise administrators can configure content exclusion so specified files are ignored by Copilot and not used for inline suggestions, responses, or code review.",
+      "source": "https://docs.github.com/en/copilot/concepts/security-governance-and-network-settings/content-exclusion",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "GitHub Copilot is available across multiple IDEs, GitHub, mobile, CLI, and supports model choice and third-party agents, reducing dependence on a single interaction surface.",
+      "source": "https://github.com/features/copilot",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.8
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "GitHub publishes plan prices, included AI-credit allowances, usage billing rules, and budget controls that can limit additional paid Copilot usage.",
+      "source": "https://docs.github.com/en/enterprise-cloud@latest/billing/concepts/product-billing/github-copilot-billing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Copilot integrates with pull requests, code review, shared repositories, and organization workflows where review comments can be discussed and resolved by team members.",
+      "source": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/copilot-code-review",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "GitHub's responsible-use guidance says Copilot should be used as a tool rather than a replacement for human programming and emphasizes review, testing, and human oversight.",
+      "source": "https://docs.github.com/en/copilot/responsible-use/inline-suggestions",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "GitHub offers a free Copilot plan with no credit card required and provides no-cost access to premium Copilot features for verified students.",
+      "source": "https://github.com/features/copilot/plans",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 11,
+    "rejected_findings": 0,
+    "unique_sources": 7,
+    "primary_findings": 11,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public GitHub primary-source documentation and has not been reviewed by GitHub.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every user or organization.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
