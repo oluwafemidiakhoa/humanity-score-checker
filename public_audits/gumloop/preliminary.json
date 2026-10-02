@@ -1,0 +1,169 @@
+{
+  "product_name": "Gumloop",
+  "product_url": "https://www.gumloop.com/",
+  "description": "AI automation and agent platform for building, governing, and deploying collaborative agents across models, integrations, and business workflows.",
+  "audit_date": "2026-10-01",
+  "status": "PRELIMINARY",
+  "humanity_score": 68,
+  "dimension_scores": {
+    "agency": 71,
+    "value_distribution": 68,
+    "human_connection": 65
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 74,
+      "reversibility": 72,
+      "transparency": 62,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 61,
+      "data_rights": 65,
+      "lock_in": 72,
+      "incentive_alignment": 74
+    },
+    "human_connection": {
+      "collaboration": 74,
+      "substitution_risk": 75,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_confidence": "high",
+  "rubric_version": "2.0.0",
+  "report_hash": "6e39a60c6314c4250fc710b97798a2ef469e15cdd9a918a8f78c02ad3000b49e",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Gumloop gives organization administrators granular control over workspaces, flows, user permissions, agent tools, AI model access, and spend policies.",
+      "source": "https://www.gumloop.com/privacy-policy",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Gumloop's privacy policy gives users rights to request deletion of personal data and lets administrators remove users and revoke access to workspaces, flows, and credentials.",
+      "source": "https://www.gumloop.com/privacy-policy",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Gumloop documents organization-wide audit logging, tool-call tracing, usage monitoring, and dashboards intended to show how agents use company data and which actions they take.",
+      "source": "https://www.gumloop.com/about",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Gumloop's human-in-the-loop controls can force an agent to pause before selected actions and require explicit human approval or rejection before continuing.",
+      "source": "https://www.gumloop.com/blog/human-in-the-loop",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Gumloop offers a free tier and publishes pricing intended to make it possible for users to test automations before scaling into paid usage.",
+      "source": "https://www.gumloop.com/blog/transparent-pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Gumloop's terms state that users retain their rights to content they submit, while its privacy policy provides access, deletion, restriction, objection, and portability rights.",
+      "source": "https://www.gumloop.com/tos",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Gumloop's privacy policy states that uploaded data, flows, and agent chats from premium users are not used to train AI, but the public language is specifically scoped to premium users.",
+      "source": "https://www.gumloop.com/privacy-policy",
+      "source_type": "primary",
+      "impact": -1,
+      "confidence": 0.8
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Gumloop supports its own MCP server, broad external connectors, bring-your-own API keys, and data exports, giving customers multiple integration and exit paths.",
+      "source": "https://www.gumloop.com/connectors/gumloop-mcp",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Gumloop publishes a pricing model that passes through token and compute costs and adds an explicit orchestration fee, making the platform's margin structure visible.",
+      "source": "https://www.gumloop.com/blog/transparent-pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Gumloop describes agents as collaborative assets that teams can co-own, run, improve, and use together across Slack, Teams, email, and shared workflows.",
+      "source": "https://www.gumloop.com/about",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Gumloop explicitly supports human approval for customer-facing, irreversible, financial, and other consequential agent actions rather than requiring unrestricted autonomous execution.",
+      "source": "https://www.gumloop.com/blog/human-in-the-loop",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Gumloop states that people should be able to build agents by describing a task in plain language, offers a free tier, and provides templates and self-paced learning resources.",
+      "source": "https://www.gumloop.com/about",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 12,
+    "rejected_findings": 0,
+    "unique_sources": 6,
+    "primary_findings": 12,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public Gumloop primary-source documentation and has not been reviewed by Gumloop.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
