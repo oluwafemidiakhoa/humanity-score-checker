@@ -1,0 +1,160 @@
+{
+  "product_name": "Boei",
+  "product_url": "https://boei.help/",
+  "description": "AI customer-conversation and support platform spanning website chat, email, WhatsApp, SMS, lead capture, automation, human handoff, team inboxes, and agentic actions.",
+  "audit_date": "2026-10-01",
+  "status": "PRELIMINARY",
+  "humanity_score": 68,
+  "dimension_scores": {
+    "agency": 71,
+    "value_distribution": 68,
+    "human_connection": 65
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 74,
+      "reversibility": 61,
+      "transparency": 74,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 61,
+      "data_rights": 75,
+      "lock_in": 61,
+      "incentive_alignment": 74
+    },
+    "human_connection": {
+      "collaboration": 74,
+      "substitution_risk": 74,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_confidence": "moderate",
+  "rubric_version": "2.0.0",
+  "report_hash": "1e48a3baa96ea3d01a909701776e482b259b3d2e6d9a924880b9df9b574c3e2d",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Boei lets teams configure AI actions, channels, training sources, and when conversations hand off to human agents, with human operators able to take over from the shared inbox.",
+      "source": "https://boei.help/pricing/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Boei states customers can cancel subscriptions at any time, and its product materials describe export or deletion of user data on request.",
+      "source": "https://boei.help/contact/",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Boei publishes detailed pricing, security, subprocessors, data-processing terms, and how its website crawler and AI channels operate.",
+      "source": "https://boei.help/security/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Boei documents human handoff for conversations the AI cannot answer, with agents notified and able to take over directly from the shared inbox.",
+      "source": "https://boei.help/for/small-business/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Boei offers low-cost flat plans, a 7-day no-card trial, included AI credits, and startup-focused workflows intended to reduce support and lead-handling workload.",
+      "source": "https://boei.help/for/startups/",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Boei states data subjects can exercise access, rectification, erasure, restriction, portability, and objection rights, and provides a DPA for business customers.",
+      "source": "https://boei.help/gdpr",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Boei supports API access, webhooks, multiple channels, data export/delete rights, and cancellation without long-term contracts, reducing dependency on a single closed workflow.",
+      "source": "https://boei.help/pricing/",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.85
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Boei publishes monthly and annual prices, included AI credits, no-card trials, no long-term contracts, and clearly stated plan limits.",
+      "source": "https://boei.help/pricing/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Boei provides team inboxes and multiple human-agent seats so teams can collaborate around AI-assisted customer conversations and handoffs.",
+      "source": "https://boei.help/pricing/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Boei explicitly supports escalation to human agents when AI cannot answer and positions its AI as handling repetitive support while people handle important conversations.",
+      "source": "https://boei.help/email/features/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Boei offers a 7-day free trial without a credit card, low-entry plans, 95+ languages, and support across common website platforms and messaging channels.",
+      "source": "https://boei.help/for/startups/",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 11,
+    "rejected_findings": 0,
+    "unique_sources": 7,
+    "primary_findings": 11,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public Boei primary-source documentation and has not been reviewed by Boei.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
