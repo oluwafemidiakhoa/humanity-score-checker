@@ -1,0 +1,160 @@
+{
+  "product_name": "MindStudio",
+  "product_url": "https://www.mindstudio.ai/",
+  "description": "AI-agent platform for building, testing, deploying, and governing custom agents across models, apps, APIs, and business workflows.",
+  "audit_date": "2026-10-01",
+  "status": "PRELIMINARY",
+  "humanity_score": 67,
+  "dimension_scores": {
+    "agency": 68,
+    "value_distribution": 70,
+    "human_connection": 64
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 74,
+      "reversibility": 60,
+      "transparency": 62,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 61,
+      "data_rights": 75,
+      "lock_in": 72,
+      "incentive_alignment": 72
+    },
+    "human_connection": {
+      "collaboration": 72,
+      "substitution_risk": 74,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_confidence": "moderate",
+  "rubric_version": "2.0.0",
+  "report_hash": "fe4b59fbd9e3dce5b3b350c363c84381cb999344afa36710c1bbb29cc4854a49",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "MindStudio lets users bring their own model API keys, choose among more than 200 models, control model and third-party service access, and configure collaborator permissions and usage budgets.",
+      "source": "https://www.mindstudio.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "MindStudio's terms state that users may stop using the service and request account termination, while the platform's pricing describes exportable logs and configurable retention controls for business use.",
+      "source": "https://www.mindstudio.ai/legal/terms-of-use",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.8
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "MindStudio publishes plan prices, usage terms, model-access options, activity logs, analytics, and budget controls so users can inspect cost and operational behavior.",
+      "source": "https://www.mindstudio.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "MindStudio explicitly supports human-in-the-loop checkpoints where agents pause for human approval or revision before sensitive actions continue.",
+      "source": "https://www.mindstudio.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "MindStudio provides a free plan with one agent and 1,000 runs per month, plus a low-cost individual tier and self-paced learning resources for users evaluating the platform.",
+      "source": "https://www.mindstudio.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "MindStudio states that user data is never used for training and its privacy policy provides access, correction, deletion, restriction, and portability rights where applicable.",
+      "source": "https://www.mindstudio.ai/legal/privacy-policy",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "MindStudio supports bring-your-own API keys, access to more than 200 models, third-party APIs, webhooks, Node.js, Zapier, Make, n8n, and custom code, reducing dependency on a single model or integration path.",
+      "source": "https://www.mindstudio.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "MindStudio says users can see exact model and workflow costs without markup on API calls, with real-time cost tracking and budget controls.",
+      "source": "https://www.mindstudio.ai/blog/saas",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "MindStudio supports collaborators with granular permissions, user-level access controls, role-based access, activity history, and team-oriented deployment controls.",
+      "source": "https://www.mindstudio.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "MindStudio's human-in-the-loop design allows agents to prepare actions and then pause for human review, preserving human judgment for sensitive or consequential steps.",
+      "source": "https://www.mindstudio.ai/blog/saas",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "MindStudio offers a free tier, no-code agent creation, no API key requirement for routed models, and extensive self-paced training materials.",
+      "source": "https://www.mindstudio.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 11,
+    "rejected_findings": 0,
+    "unique_sources": 4,
+    "primary_findings": 11,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public MindStudio primary-source documentation and has not been reviewed by MindStudio.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
