@@ -1,0 +1,261 @@
+{
+  "schema": "humanity-score.public-audit-index.v1",
+  "generated_from": "public_audits/*/preliminary.json",
+  "ordering": "alphabetical",
+  "ranking": false,
+  "notice": "Public preliminary audits. Scores reflect documented evidence at each audit date and are not regulatory, legal, safety, compliance, government certification, or an unsupported overall product ranking.",
+  "audits": [
+    {
+      "slug": "bardeen",
+      "product_name": "Bardeen",
+      "humanity_score": 67,
+      "dimension_scores": {
+        "agency": 70,
+        "value_distribution": 67,
+        "human_connection": 64
+      },
+      "evidence_confidence": "high",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "89fbcf1331eca938d2d53ed6767c0f8f0491c7348afbe6b8e67914fe214226ee",
+      "evidence_summary": {
+        "valid_findings": 12,
+        "unique_sources": 6,
+        "criteria_covered": 11
+      },
+      "receipt": "./bardeen/README.md",
+      "data": "./bardeen/preliminary.json"
+    },
+    {
+      "slug": "boei",
+      "product_name": "Boei",
+      "humanity_score": 68,
+      "dimension_scores": {
+        "agency": 71,
+        "value_distribution": 68,
+        "human_connection": 65
+      },
+      "evidence_confidence": "moderate",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "1e48a3baa96ea3d01a909701776e482b259b3d2e6d9a924880b9df9b574c3e2d",
+      "evidence_summary": {
+        "valid_findings": 11,
+        "unique_sources": 7,
+        "criteria_covered": 11
+      },
+      "receipt": "./boei/README.md",
+      "data": "./boei/preliminary.json"
+    },
+    {
+      "slug": "chatpm",
+      "product_name": "ChatPM",
+      "humanity_score": 66,
+      "dimension_scores": {
+        "agency": 68,
+        "value_distribution": 68,
+        "human_connection": 61
+      },
+      "evidence_confidence": "moderate",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "b2987cda0f31902efbf47a954f8a7cfb0ebe10f070fa07d94638258f7da83262",
+      "evidence_summary": {
+        "valid_findings": 11,
+        "unique_sources": 6,
+        "criteria_covered": 11
+      },
+      "receipt": "./chatpm/README.md",
+      "data": "./chatpm/preliminary.json"
+    },
+    {
+      "slug": "composio",
+      "product_name": "Composio",
+      "humanity_score": 69,
+      "dimension_scores": {
+        "agency": 75,
+        "value_distribution": 68,
+        "human_connection": 65
+      },
+      "evidence_confidence": "high",
+      "audit_date": "2026-10-02",
+      "rubric_version": "2.0.0",
+      "report_hash": "28ca6aefa00d849f04ed872f34219baa6780cf3ff181e7fa20a0bc907adfe762",
+      "evidence_summary": {
+        "valid_findings": 12,
+        "unique_sources": 7,
+        "criteria_covered": 11
+      },
+      "receipt": "./composio/README.md",
+      "data": "./composio/preliminary.json"
+    },
+    {
+      "slug": "github-copilot",
+      "product_name": "GitHub Copilot",
+      "humanity_score": 65,
+      "dimension_scores": {
+        "agency": 68,
+        "value_distribution": 64,
+        "human_connection": 62
+      },
+      "evidence_confidence": "moderate",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "57fc4744ca9ba6f945f8a00f3a6b9cf683c57a54e4b4c121b86904004338198d",
+      "evidence_summary": {
+        "valid_findings": 11,
+        "unique_sources": 7,
+        "criteria_covered": 11
+      },
+      "receipt": "./github-copilot/README.md",
+      "data": "./github-copilot/preliminary.json"
+    },
+    {
+      "slug": "gumloop",
+      "product_name": "Gumloop",
+      "humanity_score": 68,
+      "dimension_scores": {
+        "agency": 71,
+        "value_distribution": 68,
+        "human_connection": 65
+      },
+      "evidence_confidence": "high",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "6e39a60c6314c4250fc710b97798a2ef469e15cdd9a918a8f78c02ad3000b49e",
+      "evidence_summary": {
+        "valid_findings": 12,
+        "unique_sources": 6,
+        "criteria_covered": 11
+      },
+      "receipt": "./gumloop/README.md",
+      "data": "./gumloop/preliminary.json"
+    },
+    {
+      "slug": "jev-ai",
+      "product_name": "Jev AI",
+      "humanity_score": 63,
+      "dimension_scores": {
+        "agency": 68,
+        "value_distribution": 58,
+        "human_connection": 62
+      },
+      "evidence_confidence": "moderate",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "9ca62381c3ed5f1ef90e0e372f6979b9d4b6d70b34b61694e741ee8964c5575a",
+      "evidence_summary": {
+        "valid_findings": 9,
+        "unique_sources": 6,
+        "criteria_covered": 9
+      },
+      "receipt": "./jev-ai/README.md",
+      "data": "./jev-ai/preliminary.json"
+    },
+    {
+      "slug": "lindy",
+      "product_name": "Lindy",
+      "humanity_score": 71,
+      "dimension_scores": {
+        "agency": 74,
+        "value_distribution": 74,
+        "human_connection": 64
+      },
+      "evidence_confidence": "high",
+      "audit_date": "2026-10-02",
+      "rubric_version": "2.0.0",
+      "report_hash": "b89e32349743f4221feb397472fbed6f067cece75c29cc0bfdd558dfcf15645d",
+      "evidence_summary": {
+        "valid_findings": 12,
+        "unique_sources": 7,
+        "criteria_covered": 11
+      },
+      "receipt": "./lindy/README.md",
+      "data": "./lindy/preliminary.json"
+    },
+    {
+      "slug": "lutra-ai",
+      "product_name": "Lutra AI",
+      "humanity_score": 67,
+      "dimension_scores": {
+        "agency": 74,
+        "value_distribution": 64,
+        "human_connection": 64
+      },
+      "evidence_confidence": "high",
+      "audit_date": "2026-10-02",
+      "rubric_version": "2.0.0",
+      "report_hash": "5ed6a0940c501ab95c1777af928a58ef977e12fa7793728dc9833611c242c048",
+      "evidence_summary": {
+        "valid_findings": 12,
+        "unique_sources": 3,
+        "criteria_covered": 11
+      },
+      "receipt": "./lutra-ai/README.md",
+      "data": "./lutra-ai/preliminary.json"
+    },
+    {
+      "slug": "mindstudio",
+      "product_name": "MindStudio",
+      "humanity_score": 67,
+      "dimension_scores": {
+        "agency": 68,
+        "value_distribution": 70,
+        "human_connection": 64
+      },
+      "evidence_confidence": "moderate",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "fe4b59fbd9e3dce5b3b350c363c84381cb999344afa36710c1bbb29cc4854a49",
+      "evidence_summary": {
+        "valid_findings": 11,
+        "unique_sources": 4,
+        "criteria_covered": 11
+      },
+      "receipt": "./mindstudio/README.md",
+      "data": "./mindstudio/preliminary.json"
+    },
+    {
+      "slug": "modelbrew",
+      "product_name": "ModelBrew",
+      "humanity_score": 62,
+      "dimension_scores": {
+        "agency": 65,
+        "value_distribution": 65,
+        "human_connection": 55
+      },
+      "evidence_confidence": "moderate",
+      "audit_date": "2026-10-01",
+      "rubric_version": "2.0.0",
+      "report_hash": "40594ceef9a22a8879ff4e11237294891cc26db80d61e35d13a3439b6e6fb46e",
+      "evidence_summary": {
+        "valid_findings": 8,
+        "unique_sources": 5,
+        "criteria_covered": 8
+      },
+      "receipt": "./modelbrew/README.md",
+      "data": "./modelbrew/preliminary.json"
+    },
+    {
+      "slug": "relevance-ai",
+      "product_name": "Relevance AI",
+      "humanity_score": 70,
+      "dimension_scores": {
+        "agency": 74,
+        "value_distribution": 73,
+        "human_connection": 64
+      },
+      "evidence_confidence": "high",
+      "audit_date": "2026-10-02",
+      "rubric_version": "2.0.0",
+      "report_hash": "b8e9d289dbf285fc98d42c1f0c61b800e69ca97b10140bf3609f382a1a66bcec",
+      "evidence_summary": {
+        "valid_findings": 12,
+        "unique_sources": 8,
+        "criteria_covered": 11
+      },
+      "receipt": "./relevance-ai/README.md",
+      "data": "./relevance-ai/preliminary.json"
+    }
+  ]
+}
