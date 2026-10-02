@@ -14,6 +14,7 @@ from mcp.server.fastmcp import FastMCP
 
 from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
 from core import audit_evidence, score_self_reported, share_thread, unverified_badge
+from intelligence import build_decision_intelligence, compare_audit_results
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
@@ -69,6 +70,60 @@ def create_audit_receipt(
         "receipt": receipt,
         "markdown": receipt_markdown(receipt),
         "html": receipt_html(receipt),
+    }
+
+
+@mcp.tool()
+def decision_brief(
+    product_name: str,
+    description: str,
+    evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+) -> dict[str, Any]:
+    """Return an evidence-backed audit plus actionable decision intelligence."""
+    audit = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    audit["share_thread"] = share_thread(audit)
+    return {
+        "audit": audit,
+        "decision_intelligence": build_decision_intelligence(audit),
+    }
+
+
+@mcp.tool()
+def monitor_product_change(
+    product_name: str,
+    description: str,
+    previous_evidence: list[dict[str, Any]],
+    current_evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+) -> dict[str, Any]:
+    """Compare two evidence snapshots and report material Humanity Score changes."""
+    previous = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=previous_evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    current = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=current_evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    return {
+        "previous_audit": previous,
+        "current_audit": current,
+        "change_intelligence": compare_audit_results(previous, current),
     }
 
 
