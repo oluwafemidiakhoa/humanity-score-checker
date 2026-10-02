@@ -1,0 +1,171 @@
+{
+  "product_name": "Lindy",
+  "product_url": "https://www.lindy.ai/",
+  "description": "AI teammate platform for Slack, email, meetings, research, integrations, and business workflows with approval controls and enterprise governance.",
+  "audit_date": "2026-10-02",
+  "status": "PRELIMINARY",
+  "humanity_score": 71,
+  "dimension_scores": {
+    "agency": 74,
+    "value_distribution": 74,
+    "human_connection": 64
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 74,
+      "reversibility": 74,
+      "transparency": 74,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 61,
+      "data_rights": 87,
+      "lock_in": 74,
+      "incentive_alignment": 74
+    },
+    "human_connection": {
+      "collaboration": 72,
+      "substitution_risk": 72,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_color": "green",
+  "badge_label": "GREEN · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "assessment_mode": "evidence_backed",
+  "evidence_confidence": "high",
+  "rubric_version": "2.0.0",
+  "report_hash": "b89e32349743f4221feb397472fbed6f067cece75c29cc0bfdd558dfcf15645d",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Lindy says customers control what the service can access, can change or revoke permissions, and can set seat-level credit allocations within a workspace.",
+      "source": "https://www.lindy.ai/security",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Lindy allows users to terminate accounts and request deletion of personal information, subject to limited legal and operational retention exceptions.",
+      "source": "https://www.lindy.ai/privacy",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Lindy states that every action the service takes is logged so users can inspect what happened, when it happened, and why.",
+      "source": "https://www.lindy.ai/security",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Lindy states that actions with outside impact wait for approval, including sending email, updating tickets, posting to channels, or publishing documents.",
+      "source": "https://www.lindy.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Lindy publishes individual pricing, includes a seven-day trial for new teammates joining through Slack, and provides shared credits across a team workspace.",
+      "source": "https://www.lindy.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Lindy states that users retain ownership of their Contributions and that those Contributions are not used to train AI models.",
+      "source": "https://www.lindy.ai/terms-of-service",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Lindy documents rights to request deletion, correction, restriction, and information about personal data, and says personal information is not sold to third parties.",
+      "source": "https://www.lindy.ai/privacy",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Lindy advertises support for multiple frontier models, thousands of integrations, MCP connections, and explicit model choice rather than a single-model dependency.",
+      "source": "https://www.lindy.ai/enterprise",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Lindy says it does not create surprise overage bills: when a shared credit pool runs low, usage pauses and administrators can adjust allocations or plans.",
+      "source": "https://www.lindy.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Lindy is positioned as a Slack-native teammate that works alongside teams, with shared meeting libraries, team files, workspace context, and collaborative workflows.",
+      "source": "https://www.lindy.ai/contact-sales",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Lindy combines automation with explicit approval gates for consequential actions, preserving a human decision point before external-impact work is executed.",
+      "source": "https://www.lindy.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Lindy lets users delegate work in natural language, offers a trial path, and provides ready-made assistant capabilities rather than requiring users to build a custom model stack.",
+      "source": "https://www.lindy.ai/ai-email-writer",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.85
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 12,
+    "rejected_findings": 0,
+    "unique_sources": 7,
+    "primary_findings": 12,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public Lindy primary-source documentation and has not been reviewed by Lindy.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
