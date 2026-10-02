@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import sys
-import time
 
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
+
 
 EXPECTED_TOOLS = {
     "audit_product",
@@ -15,6 +15,8 @@ EXPECTED_TOOLS = {
     "generate_badge",
     "generate_viral_teardown",
     "create_audit_receipt",
+    "decision_brief",
+    "monitor_product_change",
 }
 
 

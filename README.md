@@ -102,6 +102,37 @@ The result includes:
 - factual five-post share thread
 - limitations
 
+
+## Decision intelligence
+
+Humanity Score v3 adds an action layer on top of the evidence-backed score.
+
+### `decision_brief`
+
+Runs an evidence-backed audit and turns the result into a practical brief for founders, buyers, and AI-governance teams. It returns:
+
+- prioritized gaps and recommended actions
+- documented strengths
+- buyer due-diligence questions
+- monitoring triggers
+- a suggested review interval
+- the underlying audit and reproducible report hash
+
+The brief does not change the score and does not make a purchase recommendation.
+
+### `monitor_product_change`
+
+Compares a previous and current evidence snapshot and reports:
+
+- overall Humanity Score delta
+- dimension deltas
+- criterion-level improvements and regressions
+- evidence added or removed
+- whether the change is material
+- an updated decision brief
+
+This supports recurring vendor and product monitoring rather than treating Humanity Score as a one-time report.
+
 ## Backward-compatible tool: `score_product`
 
 The original interface still works:

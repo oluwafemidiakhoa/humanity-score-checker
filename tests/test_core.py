@@ -1,6 +1,7 @@
 import unittest
 
 from core import audit_evidence, score_self_reported, unverified_badge
+from intelligence import build_decision_intelligence, compare_audit_results
 
 
 GOOD_EVIDENCE = [
@@ -131,6 +132,40 @@ class HumanityScoreTests(unittest.TestCase):
         self.assertNotIn("<script>", result["svg"])
         self.assertIn("&lt;script&gt;", result["svg"])
 
+
+    def test_decision_intelligence_prioritizes_evidence_gaps(self):
+        audit = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=GOOD_EVIDENCE,
+            product_url="https://example.com",
+        )
+        brief = build_decision_intelligence(audit)
+        self.assertEqual(brief["product_name"], "Example")
+        self.assertTrue(brief["priority_actions"])
+        self.assertEqual(brief["review_signal"], "evidence_review")
+        self.assertEqual(len(brief["monitoring_triggers"]), 6)
+
+    def test_change_monitor_detects_material_change(self):
+        previous = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=GOOD_EVIDENCE,
+            product_url="https://example.com",
+        )
+        changed = [dict(item) for item in GOOD_EVIDENCE]
+        changed[0] = dict(changed[0])
+        changed[0]["impact"] = -2
+        current = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=changed,
+            product_url="https://example.com",
+        )
+        diff = compare_audit_results(previous, current)
+        self.assertTrue(diff["material_change"])
+        self.assertLess(diff["overall_delta"], 0)
+        self.assertTrue(diff["regressions"])
 
 if __name__ == "__main__":
     unittest.main()
