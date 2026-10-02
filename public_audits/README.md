@@ -4,6 +4,14 @@ Public, preliminary Humanity Score audits of AI products using rubric version 2.
 
 This index is **not a ranking**. Products are listed alphabetically. Scores reflect the documented evidence captured for each audit date; they do not prove real-world outcomes, regulatory compliance, legal compliance, safety, or government certification.
 
+## Need a deeper audit of your product?
+
+The public cohort demonstrates the methodology. A **Humanity Score Founder Audit** is available for **$499 one-time** and includes a deeper evidence review, prioritized action brief, buyer due-diligence questions, and a shareable verification receipt.
+
+**Book the Founder Audit:** https://book.stripe.com/eVq3cu0N71pucyIf8Eao80b
+
+Payment does not buy a higher score or a favorable badge.
+
 | Product | Score | Agency | Value Distribution | Human Connection | Evidence | Confidence | Audit date | Audit |
 |---|---:|---:|---:|---:|---|---|---|---|
 | [Bardeen](./bardeen/) | 67 | 70 | 67 | 64 | 12 findings · 6 sources · 11 criteria | high | 2026-10-01 | [receipt](./bardeen/README.md) |

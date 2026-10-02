@@ -9,10 +9,21 @@ Version 2 separates two very different things:
 - **Self-assessment** — a founder/user can enter three 0–100 ratings. This is useful for reflection, but it is always labeled `SELF-ASSESSED` and is **not badge eligible**.
 - **Evidence-backed audit** — structured findings with source URLs are scored against a published rubric. Only audits that meet evidence coverage gates can receive an `EVIDENCE-BACKED` badge.
 
-**MCPMarket launch price:** $19  
+**Founder Audit:** $499 one-time — [Book the audit](https://book.stripe.com/eVq3cu0N71pucyIf8Eao80b)  
+**MCPMarket tool price:** $19  
 **Repository:** `github.com/oluwafemidiakhoa/humanity-score-checker`
 
 > Humanity Score is a product-impact rating. It is not a regulatory, legal, safety, compliance, or third-party certification.
+
+## Paid Founder Audit
+
+The public audits are proof of the methodology. Founders who want a deeper review can purchase a one-time **$499 Humanity Score Founder Audit**.
+
+The paid audit includes an evidence-backed assessment, prioritized action brief, buyer due-diligence questions, and a shareable verification receipt.
+
+**Book:** https://book.stripe.com/eVq3cu0N71pucyIf8Eao80b
+
+Payment cannot buy a higher score or favorable badge. Scores change only when evidence or methodology changes. See [FOUNDER_AUDIT.md](./FOUNDER_AUDIT.md) for scope and fulfillment.
 
 ## Why v2 exists
 
