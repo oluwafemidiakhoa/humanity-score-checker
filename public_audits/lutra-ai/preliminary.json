@@ -1,0 +1,169 @@
+{
+  "product_name": "Lutra AI",
+  "product_url": "https://lutra.ai/",
+  "description": "AI productivity agent that connects work apps, writes code to complete tasks, and turns recurring workflows into reusable and shareable Playbooks.",
+  "audit_date": "2026-10-02",
+  "status": "PRELIMINARY",
+  "humanity_score": 67,
+  "dimension_scores": {
+    "agency": 74,
+    "value_distribution": 64,
+    "human_connection": 64
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 74,
+      "reversibility": 74,
+      "transparency": 72,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 61,
+      "data_rights": 62,
+      "lock_in": 72,
+      "incentive_alignment": 61
+    },
+    "human_connection": {
+      "collaboration": 72,
+      "substitution_risk": 75,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_confidence": "high",
+  "rubric_version": "2.0.0",
+  "report_hash": "5ed6a0940c501ab95c1777af928a58ef977e12fa7793728dc9833611c242c048",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Lutra's terms say users control how much information from connected third-party accounts is accessible by adjusting privacy settings on those accounts.",
+      "source": "https://lutra.ai/terms",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Lutra's terms say users can revoke the private-content license by deleting the relevant content or terminating their account, subject to retention and legal requirements.",
+      "source": "https://lutra.ai/terms",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Lutra states that users have full visibility into actions and generated code, and its help center explains that Lutra writes code to execute tasks reproducibly.",
+      "source": "https://lutra.ai/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Lutra's terms state that users are given an opportunity to review and confirm generated content before execution.",
+      "source": "https://lutra.ai/terms",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Lutra offers a free plan and publishes usage-based credit pricing so individuals can try the automation service before upgrading.",
+      "source": "https://lutra.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Lutra's terms state that private user submissions remain owned by the user and are private by default.",
+      "source": "https://lutra.ai/terms",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Lutra's terms allow private submissions from non-paid users to be used for training or improving its services, which weakens the data-rights signal for free users.",
+      "source": "https://lutra.ai/terms",
+      "source_type": "primary",
+      "impact": -1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Lutra supports custom integrations through MCP, REST, OpenAPI, databases, and many third-party productivity tools, providing multiple integration paths.",
+      "source": "https://lutra.ai/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Lutra describes a simple pricing model with flat subscription access and credit-based usage, with extra discounted credits available on higher plans.",
+      "source": "https://lutra.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Lutra lets users save and share Playbooks with teammates, and enterprise users can share playbooks organization-wide to standardize work.",
+      "source": "https://lutra.ai/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Lutra's terms preserve human review before generated content executes, reducing the risk that consequential automation proceeds without user confirmation.",
+      "source": "https://lutra.ai/terms",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Lutra offers a free plan and natural-language automation that can generate integrations and workflows without requiring users to write the code themselves.",
+      "source": "https://lutra.ai/",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 12,
+    "rejected_findings": 0,
+    "unique_sources": 3,
+    "primary_findings": 12,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public Lutra AI primary-source documentation and has not been reviewed by Lutra AI.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
