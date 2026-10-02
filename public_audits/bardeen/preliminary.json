@@ -1,0 +1,169 @@
+{
+  "product_name": "Bardeen",
+  "product_url": "https://www.bardeen.ai/",
+  "description": "AI automation and agent platform for browser-based GTM workflows, scraping, enrichment, integrations, and team automation.",
+  "audit_date": "2026-10-01",
+  "status": "PRELIMINARY",
+  "humanity_score": 67,
+  "dimension_scores": {
+    "agency": 70,
+    "value_distribution": 67,
+    "human_connection": 64
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 72,
+      "reversibility": 72,
+      "transparency": 62,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 61,
+      "data_rights": 62,
+      "lock_in": 72,
+      "incentive_alignment": 72
+    },
+    "human_connection": {
+      "collaboration": 72,
+      "substitution_risk": 74,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_confidence": "high",
+  "rubric_version": "2.0.0",
+  "report_hash": "89fbcf1331eca938d2d53ed6767c0f8f0491c7348afbe6b8e67914fe214226ee",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Bardeen documents user control over automations, app permissions, browser-local execution, and organization governance that can restrict what agents and workflows are allowed to do.",
+      "source": "https://www.bardeen.ai/security",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Bardeen states that users can remove their account data from settings and that locally stored app data can be deleted with the account, while cloud automation instances erase transient run data after execution.",
+      "source": "https://www.bardeen.ai/security",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Bardeen publishes its pricing, credit model, security architecture, data-storage behavior, compliance posture, and documented governance controls for AI agents.",
+      "source": "https://www.bardeen.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Bardeen's governance guidance calls for deterministic human approval gates before actions involving money, customers, or sensitive data.",
+      "source": "https://www.bardeen.ai/answers/how-do-enterprises-govern-ai-agents",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Bardeen offers free credits and low-cost entry plans, while allowing unlimited testing of automations before paid execution under its updated pricing approach.",
+      "source": "https://www.bardeen.ai/posts/bardeen-pricing-2-0",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Bardeen states that it does not claim ownership of user content, but its terms grant a broad license to use submitted content in operating and improving services, including training and development.",
+      "source": "https://www.bardeen.ai/terms-of-service",
+      "source_type": "primary",
+      "impact": -1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Bardeen's security documentation says connected-app data is generally kept in local browser storage or transiently processed for cloud automations, and is not sold or shared with third parties.",
+      "source": "https://www.bardeen.ai/security",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Bardeen supports CSV exports and integrations with Google Sheets, Airtable, Notion, CRMs, and other systems, giving users multiple ways to move outputs outside the platform.",
+      "source": "https://www.bardeen.ai/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Bardeen publishes per-plan prices and credit consumption rules, and its newer pricing materials emphasize predictable pricing and testing automations before paying for successful runs.",
+      "source": "https://www.bardeen.ai/posts/bardeen-pricing-2-0",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Bardeen Teams supports shared playbooks, permissions, centralized billing, team visibility, and collaborative automation development across organizations.",
+      "source": "https://www.bardeen.ai/release-notes",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Bardeen's governance model emphasizes named owners and human approval for consequential agent actions rather than allowing unrestricted autonomous execution.",
+      "source": "https://www.bardeen.ai/answers/how-do-enterprises-govern-ai-agents",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Bardeen maintains a free allowance and low-cost paid plans, while supporting browser-based workflows that can be built without requiring a dedicated automation engineering team.",
+      "source": "https://www.bardeen.ai/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 12,
+    "rejected_findings": 0,
+    "unique_sources": 6,
+    "primary_findings": 12,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public Bardeen primary-source documentation and has not been reviewed by Bardeen.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
