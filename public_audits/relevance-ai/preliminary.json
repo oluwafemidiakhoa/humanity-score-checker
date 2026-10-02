@@ -1,0 +1,171 @@
+{
+  "product_name": "Relevance AI",
+  "product_url": "https://relevanceai.com/",
+  "description": "Enterprise AI-agent platform for building, deploying, governing, evaluating, and monitoring coordinated AI agents across business workflows.",
+  "audit_date": "2026-10-02",
+  "status": "PRELIMINARY",
+  "humanity_score": 70,
+  "dimension_scores": {
+    "agency": 74,
+    "value_distribution": 73,
+    "human_connection": 64
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 74,
+      "reversibility": 74,
+      "transparency": 74,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 62,
+      "data_rights": 85,
+      "lock_in": 72,
+      "incentive_alignment": 74
+    },
+    "human_connection": {
+      "collaboration": 72,
+      "substitution_risk": 74,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_color": "green",
+  "badge_label": "GREEN · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "assessment_mode": "evidence_backed",
+  "evidence_confidence": "high",
+  "rubric_version": "2.0.0",
+  "report_hash": "b8e9d289dbf285fc98d42c1f0c61b800e69ca97b10140bf3609f382a1a66bcec",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Relevance AI documents role-based access control, SSO and SAML, data residency, and governed access controls for agents operating on enterprise systems.",
+      "source": "https://relevanceai.com/enterprise",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Relevance AI allows customers to cancel subscriptions and keeps access through the current billing cycle so they have an opportunity to retrieve needed data before access ends.",
+      "source": "https://relevanceai.com/terms-and-conditions",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Relevance AI documents real-time monitoring, full agent tracing, audit logs, cost visibility, evaluations, and production sampling for agent behavior.",
+      "source": "https://relevanceai.com/product",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Relevance AI explicitly lists human-in-the-loop approvals and approval gates as enterprise controls for agent actions.",
+      "source": "https://relevanceai.com/enterprise",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Relevance AI offers a free plan without requiring a credit card and publishes paid tiers for individuals, teams, businesses, and enterprises.",
+      "source": "https://relevanceai.com/pricing-new",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Relevance AI states that users may request access, transfer, or deletion of personal data and documents additional correction, erasure, restriction, and transfer rights where applicable.",
+      "source": "https://relevanceai.com/privacy-policy",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Relevance AI states that enterprise customer data is not used to train models, while its terms grant a service-provision and improvement license over Client Data rather than transferring ownership.",
+      "source": "https://relevanceai.com/terms-and-conditions",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Relevance AI supports customer-provided API keys, many model providers, more than one thousand integrations, MCP, and CSV export of analysis results.",
+      "source": "https://relevanceai.com/docs/build/tools/export",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Relevance AI publishes tier pricing and states that vendor model credits are charged at cost without markup, while customer-supplied API keys avoid vendor-credit charges for those model calls.",
+      "source": "https://relevanceai.com/terms-and-conditions",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Relevance AI supports team-built agent workforces, Slack interaction, shared multi-agent systems, and operations dashboards intended for experts who own agent quality and outcomes.",
+      "source": "https://relevanceai.com/slack",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.9
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Relevance AI combines autonomous agent workflows with human-in-the-loop approvals, version control, evaluation gates, and monitoring rather than treating autonomy as ungoverned execution.",
+      "source": "https://relevanceai.com/product",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Relevance AI provides a no-card free plan and describes building agents in plain language, enabling non-technical teams to create workflows without starting from code.",
+      "source": "https://relevanceai.com/",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 12,
+    "rejected_findings": 0,
+    "unique_sources": 8,
+    "primary_findings": 12,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public Relevance AI primary-source documentation and has not been reviewed by Relevance AI.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
