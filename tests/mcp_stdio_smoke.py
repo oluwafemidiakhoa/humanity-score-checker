@@ -8,12 +8,15 @@ import sys
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+
 EXPECTED_TOOLS = {
     "audit_product",
     "score_product",
     "generate_badge",
     "generate_viral_teardown",
     "create_audit_receipt",
+    "decision_brief",
+    "monitor_product_change",
 }
 
 
