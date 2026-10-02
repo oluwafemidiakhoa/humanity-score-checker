@@ -92,5 +92,25 @@
     "human_connection.substitution_risk",
     "human_connection.social_wellbeing"
   ],
-  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score.",
+  "humanity_score": 62,
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_summary": {
+    "valid_findings": 8,
+    "rejected_findings": 0,
+    "unique_sources": 5,
+    "primary_findings": 8,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 8
+  },
+  "limitations": [
+    "This preliminary audit uses public ModelBrew primary-source documentation and has not been reviewed by ModelBrew.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ]
 }
