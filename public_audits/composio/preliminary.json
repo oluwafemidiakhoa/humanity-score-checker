@@ -1,0 +1,169 @@
+{
+  "product_name": "Composio",
+  "product_url": "https://composio.dev/",
+  "description": "Agent infrastructure platform that provides managed authentication, tool execution, sessions, triggers, governance, and secure access to more than 1,500 apps.",
+  "audit_date": "2026-10-02",
+  "status": "PRELIMINARY",
+  "humanity_score": 69,
+  "dimension_scores": {
+    "agency": 75,
+    "value_distribution": 68,
+    "human_connection": 65
+  },
+  "criterion_scores": {
+    "agency": {
+      "user_control": 75,
+      "reversibility": 74,
+      "transparency": 75,
+      "human_override": 75
+    },
+    "value_distribution": {
+      "user_benefit": 62,
+      "data_rights": 62,
+      "lock_in": 74,
+      "incentive_alignment": 74
+    },
+    "human_connection": {
+      "collaboration": 74,
+      "substitution_risk": 75,
+      "social_wellbeing": 50,
+      "accessibility": 61
+    }
+  },
+  "badge_label": "YELLOW · EVIDENCE-BACKED",
+  "badge_eligible": true,
+  "evidence_confidence": "high",
+  "rubric_version": "2.0.0",
+  "report_hash": "28ca6aefa00d849f04ed872f34219baa6780cf3ff181e7fa20a0bc907adfe762",
+  "evidence": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Composio lets organizations restrict agent capabilities with per-user, team, or role policies, including exact tool allowlists and read-only session controls.",
+      "source": "https://composio.dev/solutions/ai-agent-governance",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Composio documents that access is bound to identity-provider accounts so deprovisioning a user revokes the agent's access, and its privacy policy allows deletion requests.",
+      "source": "https://composio.dev/solutions/ai-agent-governance",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Composio states that every tool call is logged with the user, team, tool, action, outcome, and refused calls, giving reviewers a trace of agent activity.",
+      "source": "https://composio.dev/solutions/ai-agent-governance",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Composio's documented approval flows can pause side-effecting or destructive tool calls and require explicit user confirmation before execution.",
+      "source": "https://docs.composio.dev/docs/providers/eve",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Composio offers a free tier with 100,000 tool calls, 50,000 triggers, unlimited connected accounts on customer-owned apps, and no credit card requirement.",
+      "source": "https://composio.dev/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Composio's privacy policy gives users rights to access, correct, delete, withdraw consent for, and receive a copy of their personal data.",
+      "source": "https://composio.dev/privacy",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Composio's compliance guidance says standard plans do not guarantee end-to-end zero retention or zero training across third-party providers, so those guarantees require enterprise terms.",
+      "source": "https://docs.composio.dev/kb/guide/platform-compliance-data-handling",
+      "source_type": "primary",
+      "impact": -1,
+      "confidence": 1
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Composio is model- and framework-agnostic, supports MCP and multiple SDKs, and says customers can switch agents without reconnecting their app integrations.",
+      "source": "https://composio.dev/",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Composio publishes detailed usage prices, a hard-capped free tier, and spend caps on paid usage to reduce surprise billing.",
+      "source": "https://composio.dev/pricing",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Composio's enterprise controls include team-level permissions, SSO and SCIM, shared connections, and auditable actions tied to users and teams.",
+      "source": "https://composio.dev/solutions/ai-agent-governance",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 0.95
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Composio supports explicit approval requirements for destructive and side-effecting tools, preserving human confirmation for consequential actions.",
+      "source": "https://docs.composio.dev/docs/providers/eve",
+      "source_type": "primary",
+      "impact": 2,
+      "confidence": 1
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Composio provides a no-credit-card free tier, broad framework support, and managed authentication intended to lower the setup burden for developers building agents.",
+      "source": "https://composio.dev/pricing",
+      "source_type": "primary",
+      "impact": 1,
+      "confidence": 0.9
+    }
+  ],
+  "evidence_summary": {
+    "valid_findings": 12,
+    "rejected_findings": 0,
+    "unique_sources": 7,
+    "primary_findings": 12,
+    "dimensions_covered": [
+      "agency",
+      "human_connection",
+      "value_distribution"
+    ],
+    "criteria_covered": 11
+  },
+  "evidence_gaps": [
+    "human_connection.social_wellbeing"
+  ],
+  "limitations": [
+    "This preliminary audit uses public Composio primary-source documentation and has not been reviewed by Composio.",
+    "Published product documentation is evidence of documented controls and policies, not proof of real-world outcomes for every deployment.",
+    "Humanity Score is a product-impact rating, not a regulatory, legal, safety, compliance, or government certification."
+  ],
+  "correction_policy": "Source-backed factual corrections are welcome. Corrections change the audit only when the underlying evidence changes; payment cannot buy a higher score."
+}
