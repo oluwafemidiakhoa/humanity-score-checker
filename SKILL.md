@@ -1,9 +1,9 @@
 ---
 name: humanity-score-checker
 display_name: Humanity Score Checker — Evidence-Backed Human Impact Rating for AI
-version: 2.0.0
+version: 3.1.0
 author: oluwafemidiakhoa
-description: Scores AI products on Agency, Value Distribution, and Human Connection. Separates self-reported scoring from source-gated evidence-backed audits with reproducible report hashes and badge eligibility.
+description: Independent AI product due diligence across Agency, Value Distribution, and Human Connection, with explicit unknowns, source snapshots, duplicate/contradiction checks, reviewer calibration, and reproducible receipts.
 price: 19
 category: "analytics & monitoring"
 tags: [humanity-score, ai-ethics, product-audit, agency, evidence, transparency]
@@ -51,6 +51,10 @@ Use this for a source-gated audit.
 - `report_hash`
 - `badge_svg`
 - `share_thread`
+- `unknown_criteria`
+- `source_integrity`
+- `contradictions`
+- `duplicate_evidence`
 - `limitations`
 
 ### Evidence-backed badge gate
@@ -62,6 +66,7 @@ An audit is badge eligible only when it has at least:
 - coverage across all 3 dimensions
 - 6 distinct rubric criteria
 - 2 primary-source findings
+- 2 unique source URLs with independently retrieved snapshot hashes and retrieval timestamps
 
 Badge colors:
 
@@ -101,8 +106,17 @@ Creates a conservative five-post share thread without unsupported claims about T
 ### Human Connection
 `collaboration`, `substitution_risk`, `social_wellbeing`, `accessibility`
 
-Each criterion starts at 50. Evidence shifts only the criterion it supports. Source type and confidence weight the impact. The full methodology is documented in the repository README.
+A covered criterion starts at 50 and evidence shifts only that criterion. An uncovered criterion is UNKNOWN and is not silently treated as neutral. Source type and confidence weight the impact. An overall score is withheld until all 3 dimensions and at least 6 criteria are covered. The full methodology is documented in METHODOLOGY.md.
+
+## Additional tools
+
+- `snapshot_source`: safely retrieves a public source and returns SHA-256 + retrieval metadata.
+- `decision_brief`: turns an audit into prioritized buyer/founder actions and questions.
+- `monitor_product_change`: compares evidence snapshots over time.
+- `create_audit_receipt`: creates a deterministic public receipt.
+- `compare_reviews`: compares independent reviewer coding passes.
+- `create_appeal`: creates a deterministic correction/appeal intake record.
 
 ## Important limitation
 
-The current version validates evidence structure and provenance URLs but does not independently fetch or authenticate the source contents. Humanity Score is a product-impact rating, not regulatory, legal, safety, compliance, or third-party certification.
+A source snapshot hash proves the bytes retrieved by Humanity Score, but without an external trusted timestamp/archive it does not independently prove when those bytes first existed. Humanity Score is a product-impact and due-diligence framework, not regulatory, legal, safety, compliance, or third-party certification.
