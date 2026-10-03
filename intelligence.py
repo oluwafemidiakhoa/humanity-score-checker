@@ -72,11 +72,11 @@ def _accepted_criteria(audit: dict[str, Any]) -> set[tuple[str, str]]:
     }
 
 
-def _priority(score: int, covered: bool) -> tuple[int, str]:
+def _priority(score: int | None, covered: bool) -> tuple[int, str]:
+    if not covered or score is None:
+        return 0, "evidence_gap"
     if score < 40:
-        return 0, "critical"
-    if not covered:
-        return 1, "evidence_gap"
+        return 1, "critical"
     if score < 50:
         return 2, "high"
     if score < 65:
@@ -95,8 +95,9 @@ def build_decision_intelligence(audit: dict[str, Any]) -> dict[str, Any]:
     for dimension, criteria in DIMENSIONS.items():
         dimension_scores = audit["criterion_scores"].get(dimension, {})
         for criterion in criteria:
-            score = int(dimension_scores.get(criterion, 50))
-            is_covered = (dimension, criterion) in covered
+            raw_score = dimension_scores.get(criterion)
+            score = int(raw_score) if raw_score is not None else None
+            is_covered = (dimension, criterion) in covered and score is not None
             order, priority = _priority(score, is_covered)
             guidance = CRITERION_GUIDANCE[(dimension, criterion)]
             items.append(
@@ -114,16 +115,29 @@ def build_decision_intelligence(audit: dict[str, Any]) -> dict[str, Any]:
 
     unresolved = sorted(
         (item for item in items if item["priority"] != "strength"),
-        key=lambda item: (item["priority_order"], item["score"], item["dimension"], item["criterion"]),
+        key=lambda item: (
+            item["priority_order"],
+            item["score"] if item["score"] is not None else -1,
+            item["dimension"],
+            item["criterion"],
+        ),
     )
     strengths = sorted(
         (item for item in items if item["priority"] == "strength" and item["evidence_covered"]),
-        key=lambda item: (-item["score"], item["dimension"], item["criterion"]),
+        key=lambda item: (
+            -(item["score"] if item["score"] is not None else -1),
+            item["dimension"],
+            item["criterion"],
+        ),
     )
 
-    any_critical = any(item["score"] < 40 for item in items)
+    any_critical = any(
+        item["score"] is not None and item["score"] < 40 for item in items
+    )
     any_missing = any(not item["evidence_covered"] for item in items)
-    any_below_55 = any(item["score"] < 55 for item in items)
+    any_below_55 = any(
+        item["score"] is not None and item["score"] < 55 for item in items
+    )
     confidence = audit.get("evidence_confidence", "low")
 
     if any_critical:
@@ -141,6 +155,11 @@ def build_decision_intelligence(audit: dict[str, Any]) -> dict[str, Any]:
         "product_name": audit.get("product_name", ""),
         "humanity_score": audit.get("humanity_score"),
         "dimension_scores": audit.get("dimension_scores"),
+        "score_status": audit.get("score_status", "scored"),
+        "coverage_ratio": audit.get("coverage_ratio"),
+        "unknown_criteria": audit.get("unknown_criteria", []),
+        "contradictions": audit.get("contradictions", []),
+        "source_integrity": audit.get("source_integrity", {}),
         "review_signal": review_signal,
         "priority_actions": [
             {k: v for k, v in item.items() if k != "priority_order"} for item in unresolved[:6]
@@ -189,16 +208,36 @@ def compare_audit_results(previous: dict[str, Any], current: dict[str, Any]) -> 
     if "criterion_scores" not in previous or "criterion_scores" not in current:
         raise ValueError("previous and current must be evidence-backed Humanity Score audit results")
 
-    dimension_deltas = {
-        dimension: int(current["dimension_scores"][dimension]) - int(previous["dimension_scores"][dimension])
-        for dimension in DIMENSIONS
-    }
+    dimension_deltas: dict[str, int | None] = {}
+    for dimension in DIMENSIONS:
+        before_dim = previous["dimension_scores"].get(dimension)
+        after_dim = current["dimension_scores"].get(dimension)
+        dimension_deltas[dimension] = (
+            int(after_dim) - int(before_dim)
+            if before_dim is not None and after_dim is not None
+            else None
+        )
 
     criterion_changes: list[dict[str, Any]] = []
     for dimension, criteria in DIMENSIONS.items():
         for criterion in criteria:
-            before = int(previous["criterion_scores"][dimension][criterion])
-            after = int(current["criterion_scores"][dimension][criterion])
+            before_raw = previous["criterion_scores"][dimension][criterion]
+            after_raw = current["criterion_scores"][dimension][criterion]
+            if before_raw is None or after_raw is None:
+                if before_raw != after_raw:
+                    criterion_changes.append(
+                        {
+                            "dimension": dimension,
+                            "criterion": criterion,
+                            "previous": before_raw,
+                            "current": after_raw,
+                            "delta": None,
+                            "coverage_changed": True,
+                        }
+                    )
+                continue
+            before = int(before_raw)
+            after = int(after_raw)
             delta = after - before
             if delta:
                 criterion_changes.append(
@@ -211,27 +250,49 @@ def compare_audit_results(previous: dict[str, Any], current: dict[str, Any]) -> 
                     }
                 )
 
-    criterion_changes.sort(key=lambda item: (-abs(item["delta"]), item["dimension"], item["criterion"]))
-    regressions = [item for item in criterion_changes if item["delta"] <= -5]
-    improvements = [item for item in criterion_changes if item["delta"] >= 5]
+    criterion_changes.sort(
+        key=lambda item: (
+            0 if item.get("delta") is None else -abs(item["delta"]),
+            item["dimension"],
+            item["criterion"],
+        )
+    )
+    regressions = [
+        item for item in criterion_changes
+        if item.get("delta") is not None and item["delta"] <= -5
+    ]
+    improvements = [
+        item for item in criterion_changes
+        if item.get("delta") is not None and item["delta"] >= 5
+    ]
 
     previous_evidence = _evidence_keys(previous)
     current_evidence = _evidence_keys(current)
     evidence_added = len(current_evidence - previous_evidence)
     evidence_removed = len(previous_evidence - current_evidence)
-    overall_delta = int(current["humanity_score"]) - int(previous["humanity_score"])
+    previous_score = previous.get("humanity_score")
+    current_score = current.get("humanity_score")
+    overall_delta = (
+        int(current_score) - int(previous_score)
+        if previous_score is not None and current_score is not None
+        else None
+    )
 
     material_change = (
-        abs(overall_delta) >= 3
-        or any(abs(item["delta"]) >= 5 for item in criterion_changes)
+        (overall_delta is not None and abs(overall_delta) >= 3)
+        or any(
+            item.get("delta") is not None and abs(item["delta"]) >= 5
+            for item in criterion_changes
+        )
+        or any(item.get("coverage_changed") for item in criterion_changes)
         or evidence_added > 0
         or evidence_removed > 0
     )
 
     return {
         "product_name": current.get("product_name") or previous.get("product_name", ""),
-        "previous_score": previous.get("humanity_score"),
-        "current_score": current.get("humanity_score"),
+        "previous_score": previous_score,
+        "current_score": current_score,
         "overall_delta": overall_delta,
         "dimension_deltas": dimension_deltas,
         "criterion_changes": criterion_changes,

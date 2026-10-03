@@ -17,6 +17,11 @@ EXPECTED_TOOLS = {
     "create_audit_receipt",
     "decision_brief",
     "monitor_product_change",
+    "snapshot_source",
+    "compare_reviews",
+    "create_appeal",
+    "procurement_packet",
+    "evidence_requests",
 }
 
 

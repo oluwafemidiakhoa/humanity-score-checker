@@ -1,7 +1,9 @@
 """Core scoring logic for Humanity Score Checker.
 
-The v2 methodology separates self-reported scores from evidence-backed audits.
-Only evidence-backed audits that meet coverage gates are badge eligible.
+Product 3.1 introduces methodology 3.0: unknown criteria are no longer silently
+treated as neutral, duplicate claims are de-duplicated, contradictory evidence
+is surfaced, and independently retrieved source snapshots can be attached to
+findings.
 """
 
 from __future__ import annotations
@@ -9,11 +11,14 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import re
 from collections import defaultdict
+from datetime import datetime, timezone
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
-RUBRIC_VERSION = "2.0.0"
+PRODUCT_VERSION = "3.1.0"
+RUBRIC_VERSION = "3.0.0"
 
 DIMENSIONS: dict[str, tuple[str, ...]] = {
     "agency": (
@@ -47,6 +52,20 @@ SOURCE_WEIGHTS = {
     "anecdotal": 0.50,
 }
 
+IMPACT_ANCHORS = {
+    -2: "Strong, directly supported evidence of material harm, loss of control, exclusion, or adverse incentive.",
+    -1: "Supported evidence of a meaningful concern or downside.",
+    0: "Supported evidence is mixed, neutral, or does not justify directional movement.",
+    1: "Supported evidence of a meaningful benefit, control, safeguard, or positive outcome.",
+    2: "Strong, directly supported evidence of a material benefit, safeguard, or positive outcome.",
+}
+
+CONFIDENCE_ANCHORS = {
+    "low": "Material ambiguity, indirect evidence, or unresolved interpretation.",
+    "moderate": "Evidence substantially supports the finding but leaves meaningful uncertainty.",
+    "high": "Direct, specific evidence with little interpretive uncertainty.",
+}
+
 
 def clamp(value: float, low: float = 0.0, high: float = 100.0) -> float:
     return max(low, min(high, value))
@@ -58,6 +77,21 @@ def valid_http_url(value: str) -> bool:
     except Exception:
         return False
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
+def canonical_url(value: str) -> str:
+    parsed = urlparse(value.strip())
+    host = parsed.hostname.lower() if parsed.hostname else ""
+    port = parsed.port
+    if port and not (
+        (parsed.scheme == "http" and port == 80)
+        or (parsed.scheme == "https" and port == 443)
+    ):
+        netloc = f"{host}:{port}"
+    else:
+        netloc = host
+    path = parsed.path or "/"
+    return urlunparse((parsed.scheme.lower(), netloc, path, "", parsed.query, ""))
 
 
 def badge_band(score: int) -> tuple[str, str]:
@@ -74,6 +108,29 @@ def _score_inputs(*values: int) -> None:
             raise ValueError("Scores must be integers from 0 to 100.")
 
 
+def _valid_sha256(value: str) -> bool:
+    return bool(re.fullmatch(r"[0-9a-fA-F]{64}", value))
+
+
+def _valid_iso_datetime(value: str) -> bool:
+    if not value:
+        return False
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return parsed.tzinfo is not None
+
+
+def _normalized_text(value: str) -> str:
+    return " ".join(value.lower().split())
+
+
+def _claim_fingerprint(dimension: str, criterion: str, finding: str) -> str:
+    payload = f"{dimension}|{criterion}|{_normalized_text(finding)}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:20]
+
+
 def score_self_reported(
     *,
     product_name: str,
@@ -85,7 +142,7 @@ def score_self_reported(
     human_story: str,
     product_url: str = "",
 ) -> dict[str, Any]:
-    """Compatibility scoring path for the original v1 interface.
+    """Compatibility scoring path for the original interface.
 
     The result is intentionally marked self-reported and is never eligible for
     an evidence-backed badge.
@@ -94,10 +151,17 @@ def score_self_reported(
     _score_inputs(agency, value_capture, connection)
     score = round((agency + value_capture + connection) / 3)
     color, band = badge_band(score)
-    source_urls = sorted({s.strip() for s in sources if isinstance(s, str) and valid_http_url(s.strip())})
+    source_urls = sorted(
+        {
+            canonical_url(s.strip())
+            for s in sources
+            if isinstance(s, str) and valid_http_url(s.strip())
+        }
+    )
     documentation_gate = len(source_urls) >= 2 and len(human_story.strip()) >= 20
 
     return {
+        "product_version": PRODUCT_VERSION,
         "humanity_score": score,
         "dimension_scores": {
             "agency": agency,
@@ -132,12 +196,22 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
     finding = str(item.get("finding", "")).strip()
     source = str(item.get("source", "")).strip()
     source_type = str(item.get("source_type", "primary")).strip().lower()
+    rationale = str(item.get("rationale", "")).strip()
+    reviewer_id = str(item.get("reviewer_id", "")).strip()
+    claim_id = str(item.get("claim_id", "")).strip()
+    source_snapshot_sha256 = str(item.get("source_snapshot_sha256", "")).strip().lower()
+    source_retrieved_at = str(item.get("source_retrieved_at", "")).strip()
+    source_archive_url = str(item.get("source_archive_url", "")).strip()
 
     try:
-        impact = float(item.get("impact"))
+        impact_raw = float(item.get("impact"))
         confidence = float(item.get("confidence", 1.0))
     except (TypeError, ValueError):
         return None, "impact and confidence must be numeric"
+
+    if not impact_raw.is_integer() or int(impact_raw) not in IMPACT_ANCHORS:
+        return None, "impact must be one of -2, -1, 0, 1, or 2"
+    impact = int(impact_raw)
 
     if dimension not in DIMENSIONS:
         return None, f"unknown dimension: {dimension or '<empty>'}"
@@ -149,10 +223,21 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
         return None, "source must be an http(s) URL"
     if source_type not in SOURCE_WEIGHTS:
         return None, "source_type must be primary, secondary, or anecdotal"
-    if impact < -2 or impact > 2:
-        return None, "impact must be between -2 and 2"
     if confidence < 0 or confidence > 1:
         return None, "confidence must be between 0 and 1"
+
+    if source_snapshot_sha256 and not _valid_sha256(source_snapshot_sha256):
+        return None, "source_snapshot_sha256 must be a 64-character SHA-256 hex digest"
+    if source_retrieved_at and not _valid_iso_datetime(source_retrieved_at):
+        return None, "source_retrieved_at must be an ISO-8601 datetime with timezone"
+    if bool(source_snapshot_sha256) != bool(source_retrieved_at):
+        return None, "source_snapshot_sha256 and source_retrieved_at must be supplied together"
+    if source_archive_url and not valid_http_url(source_archive_url):
+        return None, "source_archive_url must be an http(s) URL"
+
+    source = canonical_url(source)
+    source_verified = bool(source_snapshot_sha256 and source_retrieved_at)
+    resolved_claim_id = claim_id or _claim_fingerprint(dimension, criterion, finding)
 
     return {
         "dimension": dimension,
@@ -162,6 +247,13 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
         "source_type": source_type,
         "impact": impact,
         "confidence": confidence,
+        "rationale": rationale,
+        "reviewer_id": reviewer_id,
+        "claim_id": resolved_claim_id,
+        "source_snapshot_sha256": source_snapshot_sha256,
+        "source_retrieved_at": source_retrieved_at,
+        "source_archive_url": source_archive_url,
+        "source_verified": source_verified,
     }, None
 
 
@@ -170,21 +262,115 @@ def _report_hash(payload: dict[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _evidence_badge_svg(product_name: str, score: int, report_hash: str, eligible: bool) -> str:
-    color, band = badge_band(score)
-    fill = {"green": "#15803d", "yellow": "#a16207", "red": "#b91c1c"}[color]
-    safe_name = html.escape(product_name[:40], quote=True)
-    status = "EVIDENCE-BACKED" if eligible else "PROVISIONAL"
-    safe_status = html.escape(status, quote=True)
-    safe_hash = html.escape(report_hash[:10], quote=True)
+def _evidence_strength(item: dict[str, Any]) -> tuple[float, int, float]:
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="56" role="img" '
+        SOURCE_WEIGHTS[item["source_type"]] * item["confidence"],
+        1 if item["source_verified"] else 0,
+        abs(item["impact"]),
+    )
+
+
+def _deduplicate_evidence(
+    evidence: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Keep the strongest record for the same claim/criterion.
+
+    Auditors can supply explicit claim_id values to tie paraphrases or derived
+    sources to one underlying claim. Without claim_id, an exact normalized
+    finding fingerprint is used.
+    """
+
+    kept: dict[tuple[str, str, str], dict[str, Any]] = {}
+    duplicates: list[dict[str, Any]] = []
+
+    for item in evidence:
+        key = (item["dimension"], item["criterion"], item["claim_id"])
+        current = kept.get(key)
+        if current is None:
+            kept[key] = item
+            continue
+
+        if _evidence_strength(item) > _evidence_strength(current):
+            dropped = current
+            kept[key] = item
+            retained = item
+        else:
+            dropped = item
+            retained = current
+
+        duplicates.append(
+            {
+                "dimension": item["dimension"],
+                "criterion": item["criterion"],
+                "claim_id": item["claim_id"],
+                "dropped_source": dropped["source"],
+                "retained_source": retained["source"],
+                "reason": "duplicate or derived statement of the same claim",
+            }
+        )
+
+    ordered = sorted(
+        kept.values(),
+        key=lambda x: (
+            x["dimension"],
+            x["criterion"],
+            x["claim_id"],
+            x["source"],
+            x["finding"],
+        ),
+    )
+    return ordered, duplicates
+
+
+def _detect_contradictions(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_criterion: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for item in evidence:
+        by_criterion[(item["dimension"], item["criterion"])].append(item)
+
+    contradictions: list[dict[str, Any]] = []
+    for (dimension, criterion), items in by_criterion.items():
+        positive = [item for item in items if item["impact"] > 0]
+        negative = [item for item in items if item["impact"] < 0]
+        if positive and negative:
+            contradictions.append(
+                {
+                    "dimension": dimension,
+                    "criterion": criterion,
+                    "positive_claim_ids": sorted({item["claim_id"] for item in positive}),
+                    "negative_claim_ids": sorted({item["claim_id"] for item in negative}),
+                    "status": "unresolved",
+                }
+            )
+    return contradictions
+
+
+def _evidence_badge_svg(
+    product_name: str,
+    score: int | None,
+    report_hash: str,
+    eligible: bool,
+) -> str:
+    safe_name = html.escape(product_name[:40], quote=True)
+    safe_hash = html.escape(report_hash[:10], quote=True)
+
+    if score is None:
+        fill = "#4b5563"
+        score_text = "UNSCORED · INSUFFICIENT EVIDENCE"
+    else:
+        color, band = badge_band(score)
+        fill = {"green": "#15803d", "yellow": "#a16207", "red": "#b91c1c"}[color]
+        status = "EVIDENCE-BACKED" if eligible else "PROVISIONAL"
+        score_text = f"{score}/100 {band} · {status}"
+
+    safe_score_text = html.escape(score_text, quote=True)
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="440" height="56" role="img" '
         'aria-label="Humanity Score badge">'
-        f'<rect width="420" height="56" rx="8" fill="{fill}"/>'
+        f'<rect width="440" height="56" rx="8" fill="{fill}"/>'
         f'<text x="14" y="22" font-family="Arial,sans-serif" font-size="13" fill="white">{safe_name}</text>'
-        f'<text x="14" y="43" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="white">'
-        f'{score}/100 {band} · {safe_status}</text>'
-        f'<text x="406" y="43" font-family="monospace" font-size="9" text-anchor="end" fill="white">{safe_hash}</text>'
+        f'<text x="14" y="43" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="white">'
+        f'{safe_score_text}</text>'
+        f'<text x="426" y="43" font-family="monospace" font-size="9" text-anchor="end" fill="white">{safe_hash}</text>'
         '</svg>'
     )
 
@@ -197,15 +383,17 @@ def audit_evidence(
     product_url: str = "",
     human_story: str = "",
 ) -> dict[str, Any]:
-    """Compute an evidence-backed Humanity Score.
+    """Compute an evidence-backed Humanity Score using rubric 3.0.
 
-    Each of the 12 rubric criteria starts at a neutral 50. Valid evidence shifts
-    only the criterion it supports. Impact is -2..2 and is weighted by evidence
-    confidence and source type. This makes the output reproducible and prevents
-    a single unsupported claim from determining the entire score.
+    Uncovered criteria are represented as None/unknown rather than receiving an
+    implicit neutral 50. An overall score is produced only after evidence spans
+    all three dimensions and at least six distinct criteria.
+
+    Badge eligibility additionally requires independently retrieved source
+    snapshot metadata for at least two unique source URLs.
     """
 
-    valid: list[dict[str, Any]] = []
+    structurally_valid: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
 
     for index, item in enumerate(evidence):
@@ -213,39 +401,65 @@ def audit_evidence(
         if normalized is None:
             rejected.append({"index": index, "reason": error})
         else:
-            valid.append(normalized)
+            structurally_valid.append(normalized)
 
-    criterion_scores: dict[str, dict[str, int]] = {}
+    valid, duplicates = _deduplicate_evidence(structurally_valid)
+    contradictions = _detect_contradictions(valid)
+
+    criterion_scores: dict[str, dict[str, int | None]] = {}
     criterion_evidence: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for item in valid:
         criterion_evidence[(item["dimension"], item["criterion"])].append(item)
 
+    unknown_criteria: list[str] = []
     for dimension, criteria in DIMENSIONS.items():
         criterion_scores[dimension] = {}
         for criterion in criteria:
+            items = criterion_evidence[(dimension, criterion)]
+            if not items:
+                criterion_scores[dimension][criterion] = None
+                unknown_criteria.append(f"{dimension}.{criterion}")
+                continue
+
             score = 50.0
-            for item in criterion_evidence[(dimension, criterion)]:
+            for item in items:
                 weight = SOURCE_WEIGHTS[item["source_type"]]
                 score += item["impact"] * 12.5 * item["confidence"] * weight
             criterion_scores[dimension][criterion] = round(clamp(score))
 
-    dimension_scores = {
-        dimension: round(sum(scores.values()) / len(scores))
-        for dimension, scores in criterion_scores.items()
-    }
-    overall = round(sum(dimension_scores.values()) / len(dimension_scores))
+    dimension_scores: dict[str, int | None] = {}
+    dimension_coverage: dict[str, dict[str, Any]] = {}
+    for dimension, scores in criterion_scores.items():
+        numeric = [score for score in scores.values() if score is not None]
+        dimension_scores[dimension] = round(sum(numeric) / len(numeric)) if numeric else None
+        dimension_coverage[dimension] = {
+            "criteria_with_evidence": len(numeric),
+            "criteria_total": len(scores),
+            "coverage_ratio": round(len(numeric) / len(scores), 3),
+        }
 
     source_urls = sorted({item["source"] for item in valid})
+    verified_source_urls = sorted({item["source"] for item in valid if item["source_verified"]})
+    unverified_source_urls = sorted(set(source_urls) - set(verified_source_urls))
     dimensions_covered = sorted({item["dimension"] for item in valid})
     criteria_covered = sorted({f'{item["dimension"]}.{item["criterion"]}' for item in valid})
     primary_count = sum(1 for item in valid if item["source_type"] == "primary")
 
+    coverage_gate = len(dimensions_covered) == 3 and len(criteria_covered) >= 6
+    if coverage_gate:
+        scored_dimensions = [score for score in dimension_scores.values() if score is not None]
+        overall: int | None = round(sum(scored_dimensions) / len(scored_dimensions))
+    else:
+        overall = None
+
     badge_eligible = (
-        len(valid) >= 6
+        overall is not None
+        and len(valid) >= 6
         and len(source_urls) >= 3
         and len(dimensions_covered) == 3
         and len(criteria_covered) >= 6
         and primary_count >= 2
+        and len(verified_source_urls) >= 2
     )
 
     if (
@@ -253,6 +467,8 @@ def audit_evidence(
         and len(source_urls) >= 6
         and len(criteria_covered) >= 9
         and primary_count >= 3
+        and len(verified_source_urls) >= 3
+        and not contradictions
     ):
         evidence_confidence = "high"
     elif badge_eligible:
@@ -260,7 +476,11 @@ def audit_evidence(
     else:
         evidence_confidence = "low"
 
+    if contradictions and evidence_confidence == "high":
+        evidence_confidence = "moderate"
+
     hash_payload = {
+        "product_version": PRODUCT_VERSION,
         "rubric_version": RUBRIC_VERSION,
         "product_name": product_name,
         "product_url": product_url,
@@ -268,41 +488,68 @@ def audit_evidence(
         "criterion_scores": criterion_scores,
         "dimension_scores": dimension_scores,
         "humanity_score": overall,
-        "evidence": sorted(
-            valid,
-            key=lambda x: (
-                x["dimension"],
-                x["criterion"],
-                x["source"],
-                x["finding"],
-            ),
-        ),
+        "unknown_criteria": unknown_criteria,
+        "evidence": valid,
+        "contradictions": contradictions,
     }
     report_hash = _report_hash(hash_payload)
-    color, band = badge_band(overall)
 
-    ranked = sorted(valid, key=lambda x: abs(x["impact"] * x["confidence"]), reverse=True)
+    if overall is None:
+        color = "gray"
+        band = "UNSCORED"
+        badge_label = "UNSCORED · INSUFFICIENT EVIDENCE"
+    else:
+        color, band = badge_band(overall)
+        badge_label = f"{band} · {'EVIDENCE-BACKED' if badge_eligible else 'PROVISIONAL'}"
+
+    ranked = sorted(
+        valid,
+        key=lambda x: abs(x["impact"] * x["confidence"] * SOURCE_WEIGHTS[x["source_type"]]),
+        reverse=True,
+    )
     strongest_positive = next((x for x in ranked if x["impact"] > 0), None)
     strongest_concern = next((x for x in ranked if x["impact"] < 0), None)
 
+    coverage_ratio = round(len(criteria_covered) / sum(len(v) for v in DIMENSIONS.values()), 3)
+
     return {
+        "product_version": PRODUCT_VERSION,
         "humanity_score": overall,
+        "score_status": "scored" if overall is not None else "insufficient_evidence",
         "dimension_scores": dimension_scores,
         "criterion_scores": criterion_scores,
+        "criterion_coverage": dimension_coverage,
+        "unknown_criteria": unknown_criteria,
+        "coverage_ratio": coverage_ratio,
         "badge_color": color,
-        "badge_label": f"{band} · {'EVIDENCE-BACKED' if badge_eligible else 'PROVISIONAL'}",
+        "badge_label": badge_label,
         "badge_eligible": badge_eligible,
         "badge_svg": _evidence_badge_svg(product_name, overall, report_hash, badge_eligible),
         "assessment_mode": "evidence_backed",
         "evidence_confidence": evidence_confidence,
         "evidence_summary": {
+            "submitted_findings": len(evidence),
+            "structurally_valid_findings": len(structurally_valid),
+            "accepted_findings": len(valid),
             "valid_findings": len(valid),
             "rejected_findings": len(rejected),
+            "duplicate_findings": len(duplicates),
             "unique_sources": len(source_urls),
+            "verified_sources": len(verified_source_urls),
+            "verified_findings": sum(1 for item in valid if item["source_verified"]),
             "primary_findings": primary_count,
             "dimensions_covered": dimensions_covered,
             "criteria_covered": len(criteria_covered),
+            "coverage_ratio": coverage_ratio,
+            "contradictions": len(contradictions),
         },
+        "source_integrity": {
+            "verified_source_urls": verified_source_urls,
+            "unverified_source_urls": unverified_source_urls,
+            "snapshot_requirement_for_badge": 2,
+        },
+        "contradictions": contradictions,
+        "duplicate_evidence": duplicates,
         "strongest_positive": strongest_positive,
         "strongest_concern": strongest_concern,
         "accepted_evidence": valid,
@@ -314,16 +561,32 @@ def audit_evidence(
         "product_url": product_url,
         "description": description,
         "human_story": human_story,
+        "scoring_anchors": {
+            "impact": IMPACT_ANCHORS,
+            "confidence": CONFIDENCE_ANCHORS,
+        },
         "limitations": [
-            "The score is only as strong as the evidence supplied to the audit.",
-            "This tool validates evidence structure and provenance URLs but does not independently crawl or authenticate source contents.",
+            "The score is only as strong as the evidence accepted for the audit.",
+            (
+                "Uncovered criteria are reported as unknown and do not receive a neutral score. "
+                "An overall score is withheld until evidence covers all three dimensions and at least six criteria."
+            ),
+            (
+                "A source URL alone is not treated as independently verified. Badge eligibility in rubric 3.0 "
+                "requires snapshot hashes and retrieval timestamps for at least two unique sources."
+            ),
+            (
+                "A source snapshot hash proves the bytes retrieved by the audit process; without an external "
+                "trusted timestamp or archive it does not independently prove when those bytes first existed."
+            ),
+            "Contradictory evidence is surfaced rather than silently averaged away.",
             "The Humanity Score is a product-impact rating, not a regulatory, legal, safety, or compliance certification.",
         ],
     }
 
 
 def share_thread(audit: dict[str, Any]) -> list[str]:
-    """Generate a factual share thread from an audit result."""
+    """Generate conservative factual share copy from an audit result."""
 
     name = audit["product_name"]
     score = audit["humanity_score"]
@@ -331,6 +594,25 @@ def share_thread(audit: dict[str, Any]) -> list[str]:
     summary = audit["evidence_summary"]
     confidence = audit["evidence_confidence"].upper()
     status = "evidence-backed" if audit["badge_eligible"] else "provisional"
+
+    if score is None:
+        return [
+            f"1/ Humanity Score audit: {name} is currently UNSCORED because evidence coverage is insufficient.",
+            (
+                "2/ Missing evidence is not treated as neutral. "
+                f"Coverage: {summary['criteria_covered']}/12 criteria across "
+                f"{len(summary['dimensions_covered'])}/3 dimensions."
+            ),
+            (
+                f"3/ Evidence confidence: {confidence}. "
+                f"{summary['accepted_findings']} accepted findings across {summary['unique_sources']} source URLs."
+            ),
+            "4/ The audit keeps unknown criteria and contradictions visible instead of filling gaps with assumptions.",
+            (
+                "5/ Methodology is reproducible and source-gated. "
+                f"Report hash: {audit['report_hash'][:12]}. Humanity Score is not regulatory certification."
+            ),
+        ]
 
     positive = audit.get("strongest_positive")
     concern = audit.get("strongest_concern")
@@ -347,12 +629,13 @@ def share_thread(audit: dict[str, Any]) -> list[str]:
         ),
         (
             f"3/ Evidence confidence: {confidence}. "
-            f"{summary['valid_findings']} accepted findings across {summary['unique_sources']} source URLs."
+            f"{summary['accepted_findings']} accepted findings across {summary['unique_sources']} source URLs; "
+            f"{summary['verified_sources']} independently snapshotted."
         ),
         f"4/ Strongest positive signal: {positive_text} Strongest concern: {concern_text}",
         (
             "5/ Methodology is reproducible and source-gated. "
-            f"Report hash: {audit['report_hash'][:12]}. A Humanity Score is a product-impact rating, not regulatory certification."
+            f"Report hash: {audit['report_hash'][:12]}. Humanity Score is not regulatory certification."
         ),
     ]
 
@@ -367,5 +650,5 @@ def unverified_badge(product_name: str, score: int) -> dict[str, Any]:
         "badge_color": color,
         "badge_label": f"{band} · UNVERIFIED",
         "verification_status": "unverified",
-        "notice": "Only audit_product can issue an evidence-backed badge after evidence coverage gates pass.",
+        "notice": "Only audit_product can issue an evidence-backed badge after evidence coverage and source-integrity gates pass.",
     }

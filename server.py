@@ -15,6 +15,9 @@ from mcp.server.fastmcp import FastMCP
 from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
 from core import audit_evidence, score_self_reported, share_thread, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
+from governance import build_procurement_packet, evidence_request_checklist
+from provenance import retrieve_source_snapshot
+from review import compare_reviewer_evidence, create_appeal_record
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
@@ -124,6 +127,90 @@ def monitor_product_change(
         "previous_audit": previous,
         "current_audit": current,
         "change_intelligence": compare_audit_results(previous, current),
+    }
+
+
+@mcp.tool()
+def snapshot_source(url: str) -> dict[str, Any]:
+    """Retrieve a public evidence URL and return bounded snapshot metadata.
+
+    This tool rejects private/local network destinations and returns a SHA-256
+    hash plus retrieval timestamp for evidence provenance.
+    """
+    return retrieve_source_snapshot(url)
+
+
+@mcp.tool()
+def compare_reviews(
+    reviewer_a: list[dict[str, Any]],
+    reviewer_b: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Compare two independent Humanity Score evidence-coding passes."""
+    return compare_reviewer_evidence(reviewer_a, reviewer_b)
+
+
+@mcp.tool()
+def create_appeal(
+    product_name: str,
+    report_hash: str,
+    appellant: str,
+    claim: str,
+    evidence_urls: list[str],
+    requested_correction: str,
+) -> dict[str, Any]:
+    """Create a deterministic correction/appeal intake record."""
+    return create_appeal_record(
+        product_name=product_name,
+        report_hash=report_hash,
+        appellant=appellant,
+        claim=claim,
+        evidence_urls=evidence_urls,
+        requested_correction=requested_correction,
+    )
+
+
+@mcp.tool()
+def procurement_packet(
+    product_name: str,
+    description: str,
+    evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+) -> dict[str, Any]:
+    """Run an audit and package it for procurement/governance intake."""
+    audit = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    return {"audit": audit, "procurement_packet": build_procurement_packet(audit)}
+
+
+@mcp.tool()
+def evidence_requests(
+    product_name: str,
+    description: str,
+    evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+) -> dict[str, Any]:
+    """Return targeted evidence requests for missing or weak audit criteria."""
+    audit = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    return {
+        "product_name": product_name,
+        "report_hash": audit["report_hash"],
+        "requests": evidence_request_checklist(audit),
+        "notice": (
+            "Requests are due-diligence prompts, not a finding of compliance or non-compliance."
+        ),
     }
 
 

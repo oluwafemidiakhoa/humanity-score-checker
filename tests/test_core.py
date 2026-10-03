@@ -2,6 +2,8 @@ import unittest
 
 from core import audit_evidence, score_self_reported, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
+from governance import build_procurement_packet, evidence_request_checklist
+from review import compare_reviewer_evidence, create_appeal_record
 
 
 GOOD_EVIDENCE = [
@@ -89,27 +91,45 @@ class HumanityScoreTests(unittest.TestCase):
                 human_story="story",
             )
 
-    def test_evidence_audit_can_be_badge_eligible(self):
+    def test_evidence_audit_requires_verified_sources_for_badge(self):
         result = audit_evidence(
             product_name="Example",
             description="Example product",
             evidence=GOOD_EVIDENCE,
             product_url="https://example.com",
         )
-        self.assertTrue(result["badge_eligible"])
-        self.assertEqual(result["evidence_confidence"], "moderate")
+        self.assertFalse(result["badge_eligible"])
+        self.assertEqual(result["evidence_confidence"], "low")
         self.assertEqual(result["evidence_summary"]["valid_findings"], 6)
         self.assertEqual(result["evidence_summary"]["criteria_covered"], 6)
+        self.assertEqual(result["evidence_summary"]["verified_sources"], 0)
         self.assertEqual(len(result["report_hash"]), 64)
 
-    def test_insufficient_evidence_is_provisional(self):
+    def test_verified_snapshots_can_unlock_badge(self):
+        evidence = [dict(item) for item in GOOD_EVIDENCE]
+        for index in (0, 1):
+            evidence[index]["source_snapshot_sha256"] = ("%064x" % (index + 1))
+            evidence[index]["source_retrieved_at"] = "2026-10-03T20:00:00Z"
+        result = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=evidence,
+            product_url="https://example.com",
+        )
+        self.assertTrue(result["badge_eligible"])
+        self.assertEqual(result["evidence_summary"]["verified_sources"], 2)
+
+    def test_insufficient_evidence_is_unscored_and_unknown(self):
         result = audit_evidence(
             product_name="Example",
             description="Example product",
             evidence=GOOD_EVIDENCE[:2],
         )
         self.assertFalse(result["badge_eligible"])
-        self.assertIn("PROVISIONAL", result["badge_label"])
+        self.assertIsNone(result["humanity_score"])
+        self.assertEqual(result["score_status"], "insufficient_evidence")
+        self.assertIn("UNSCORED", result["badge_label"])
+        self.assertIsNone(result["criterion_scores"]["value_distribution"]["user_benefit"])
 
     def test_invalid_source_is_rejected(self):
         bad = dict(GOOD_EVIDENCE[0])
@@ -127,11 +147,77 @@ class HumanityScoreTests(unittest.TestCase):
         b = audit_evidence(product_name="Example", description="Example", evidence=list(reversed(GOOD_EVIDENCE)))
         self.assertEqual(a["report_hash"], b["report_hash"])
 
+    def test_duplicate_claim_is_counted_once(self):
+        evidence = [dict(item) for item in GOOD_EVIDENCE]
+        duplicate = dict(evidence[0])
+        duplicate["source"] = "https://example.com/duplicate"
+        duplicate["claim_id"] = "same-user-control-claim"
+        evidence[0]["claim_id"] = "same-user-control-claim"
+        result = audit_evidence(product_name="Example", description="Example", evidence=evidence + [duplicate])
+        self.assertEqual(result["evidence_summary"]["duplicate_findings"], 1)
+        self.assertEqual(result["evidence_summary"]["accepted_findings"], 6)
+
+    def test_contradiction_is_exposed(self):
+        evidence = [dict(item) for item in GOOD_EVIDENCE]
+        contrary = dict(evidence[0])
+        contrary["finding"] = "Independent testing reports that users cannot disable automated actions after activation."
+        contrary["source"] = "https://example.com/test/control"
+        contrary["source_type"] = "secondary"
+        contrary["impact"] = -1
+        contrary["claim_id"] = "control-negative"
+        evidence[0]["claim_id"] = "control-positive"
+        result = audit_evidence(product_name="Example", description="Example", evidence=evidence + [contrary])
+        self.assertEqual(result["evidence_summary"]["contradictions"], 1)
+        self.assertEqual(result["contradictions"][0]["criterion"], "user_control")
+
     def test_svg_escapes_product_name(self):
         result = unverified_badge('<script>alert("x")</script>', 80)
         self.assertNotIn("<script>", result["svg"])
         self.assertIn("&lt;script&gt;", result["svg"])
 
+
+    def test_reviewer_comparison_surfaces_disagreement(self):
+        a = [dict(GOOD_EVIDENCE[0])]
+        b = [dict(GOOD_EVIDENCE[0])]
+        a[0]["claim_id"] = "control"
+        b[0]["claim_id"] = "control"
+        b[0]["impact"] = 1
+        result = compare_reviewer_evidence(a, b)
+        self.assertEqual(result["overlapping_claims"], 1)
+        self.assertEqual(len(result["disagreements"]), 1)
+
+    def test_appeal_record_is_tied_to_report(self):
+        record = create_appeal_record(
+            product_name="Example",
+            report_hash="a" * 64,
+            appellant="Example Inc.",
+            claim="The published finding misstates the documented deletion control.",
+            evidence_urls=["https://example.com/privacy"],
+            requested_correction="Update the deletion-control finding.",
+        )
+        self.assertEqual(record["status"], "open")
+        self.assertEqual(len(record["appeal_id"]), 20)
+
+    def test_procurement_packet_contains_non_certifying_requests(self):
+        audit = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=GOOD_EVIDENCE,
+            product_url="https://example.com",
+        )
+        packet = build_procurement_packet(audit)
+        self.assertEqual(packet["product_name"], "Example")
+        self.assertTrue(packet["evidence_requests"])
+        self.assertIn("does not establish compliance", packet["framework_crosswalk_notice"])
+
+    def test_evidence_request_checklist_prioritizes_unknowns(self):
+        audit = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=GOOD_EVIDENCE[:2],
+        )
+        requests = evidence_request_checklist(audit)
+        self.assertTrue(any(item["status"] == "missing_evidence" for item in requests))
 
     def test_decision_intelligence_prioritizes_evidence_gaps(self):
         audit = audit_evidence(
@@ -144,6 +230,7 @@ class HumanityScoreTests(unittest.TestCase):
         self.assertEqual(brief["product_name"], "Example")
         self.assertTrue(brief["priority_actions"])
         self.assertEqual(brief["review_signal"], "evidence_review")
+        self.assertTrue(brief["unknown_criteria"])
         self.assertEqual(len(brief["monitoring_triggers"]), 6)
 
     def test_change_monitor_detects_material_change(self):
