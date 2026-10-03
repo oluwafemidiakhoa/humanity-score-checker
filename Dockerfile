@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml README.md core.py server.py audit_receipt.py intelligence.py LICENSE ./
+COPY pyproject.toml README.md core.py server.py audit_receipt.py intelligence.py governance.py provenance.py review.py LICENSE ./
 
 RUN python -m pip install --no-cache-dir --upgrade pip \
     && python -m pip install --no-cache-dir .
