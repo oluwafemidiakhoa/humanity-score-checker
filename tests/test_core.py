@@ -2,6 +2,7 @@ import unittest
 
 from core import audit_evidence, score_self_reported, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
+from governance import build_procurement_packet, evidence_request_checklist
 from review import compare_reviewer_evidence, create_appeal_record
 
 
@@ -196,6 +197,27 @@ class HumanityScoreTests(unittest.TestCase):
         )
         self.assertEqual(record["status"], "open")
         self.assertEqual(len(record["appeal_id"]), 20)
+
+    def test_procurement_packet_contains_non_certifying_requests(self):
+        audit = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=GOOD_EVIDENCE,
+            product_url="https://example.com",
+        )
+        packet = build_procurement_packet(audit)
+        self.assertEqual(packet["product_name"], "Example")
+        self.assertTrue(packet["evidence_requests"])
+        self.assertIn("does not establish compliance", packet["framework_crosswalk_notice"])
+
+    def test_evidence_request_checklist_prioritizes_unknowns(self):
+        audit = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=GOOD_EVIDENCE[:2],
+        )
+        requests = evidence_request_checklist(audit)
+        self.assertTrue(any(item["status"] == "missing_evidence" for item in requests))
 
     def test_decision_intelligence_prioritizes_evidence_gaps(self):
         audit = audit_evidence(
