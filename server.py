@@ -15,6 +15,7 @@ from mcp.server.fastmcp import FastMCP
 from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
 from core import audit_evidence, score_self_reported, share_thread, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
+from governance import build_procurement_packet, evidence_request_checklist
 from provenance import retrieve_source_snapshot
 from review import compare_reviewer_evidence, create_appeal_record
 
@@ -166,6 +167,51 @@ def create_appeal(
         evidence_urls=evidence_urls,
         requested_correction=requested_correction,
     )
+
+
+@mcp.tool()
+def procurement_packet(
+    product_name: str,
+    description: str,
+    evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+) -> dict[str, Any]:
+    """Run an audit and package it for procurement/governance intake."""
+    audit = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    return {"audit": audit, "procurement_packet": build_procurement_packet(audit)}
+
+
+@mcp.tool()
+def evidence_requests(
+    product_name: str,
+    description: str,
+    evidence: list[dict[str, Any]],
+    product_url: str = "",
+    human_story: str = "",
+) -> dict[str, Any]:
+    """Return targeted evidence requests for missing or weak audit criteria."""
+    audit = audit_evidence(
+        product_name=product_name,
+        description=description,
+        evidence=evidence,
+        product_url=product_url,
+        human_story=human_story,
+    )
+    return {
+        "product_name": product_name,
+        "report_hash": audit["report_hash"],
+        "requests": evidence_request_checklist(audit),
+        "notice": (
+            "Requests are due-diligence prompts, not a finding of compliance or non-compliance."
+        ),
+    }
 
 
 @mcp.tool()
