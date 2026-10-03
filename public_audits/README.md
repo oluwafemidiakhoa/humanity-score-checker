@@ -1,6 +1,8 @@
 # Humanity Score Index
 
-Public, preliminary Humanity Score audits of AI products using rubric version 2.0.0.
+Public, preliminary Humanity Score audits of AI products.
+
+**Historical cohort note:** the audits dated 2026-10-01 through 2026-10-02 were produced with rubric version 2.0.0 and remain immutable historical receipts. Current methodology is rubric 3.0.0; future re-audits must create new receipts and report hashes rather than silently rewriting this cohort.
 
 This index is **not a ranking**. Products are listed alphabetically. Scores reflect the documented evidence captured for each audit date; they do not prove real-world outcomes, regulatory compliance, legal compliance, safety, or government certification.
 
@@ -30,6 +32,8 @@ Payment does not buy a higher score or a favorable badge.
 ## Verification
 
 Each audit directory contains the disclosed evidence and a deterministic report hash. The full audit record includes source URLs, evidence gaps, limitations, correction policy, and methodology version.
+
+Rubric 2 receipts do not imply that source content was independently snapshotted. Rubric 3 adds explicit source-integrity metadata, UNKNOWN handling for uncovered criteria, duplicate-claim checks, contradiction reporting, and reviewer-calibration support.
 
 Machine-readable cohort metadata is available in [index.json](./index.json).
 
