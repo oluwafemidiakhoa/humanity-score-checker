@@ -20,6 +20,8 @@ EXPECTED_TOOLS = {
     "snapshot_source",
     "compare_reviews",
     "create_appeal",
+    "procurement_packet",
+    "evidence_requests",
 }
 
 
