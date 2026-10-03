@@ -117,6 +117,11 @@ def receipt_markdown(receipt: dict[str, Any]) -> str:
 def receipt_html(receipt: dict[str, Any]) -> str:
     result = receipt["result"]
     dims = result["dimension_scores"]
+    score_display = (
+        f"{result['humanity_score']}/100"
+        if result["humanity_score"] is not None
+        else "UNSCORED"
+    )
     evidence_html = "".join(
         "<article>"
         + f"<h3>{html.escape(item['dimension'])} / {html.escape(item['criterion'])}</h3>"
