@@ -4,7 +4,7 @@
 
 Humanity Score asks: **before a buyer, founder, procurement team, or investor trusts an AI product, what does the documented evidence actually support about Human Agency, Value Distribution, and Human Connection?**
 
-**Product version:** 3.1.0  
+**Product version:** 3.1.1  
 **Current rubric:** 3.0.0  
 **Founder Audit:** $499 one-time — [Book the audit](https://book.stripe.com/eVq3cu0N71pucyIf8Eao80b)  
 **MCPMarket tool price:** $19
@@ -123,6 +123,9 @@ Color bands apply only when an overall score exists:
 A color band is not certification.
 
 ## MCP tools
+
+### `version_info`
+Returns the deployed product version, rubric version, and expected tool count. Use it to verify that a managed host is not serving a stale build.
 
 ### `audit_product`
 Runs the evidence-backed audit.
