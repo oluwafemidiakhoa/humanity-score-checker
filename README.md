@@ -172,6 +172,12 @@ Compares two independent reviewer coding passes. It reports coverage disagreemen
 ### `create_appeal`
 Creates a deterministic correction/appeal intake record tied to a report hash.
 
+### `procurement_packet`
+Runs an audit and packages the result for procurement/governance intake, including explicit unknowns, source integrity, contradictions, monitoring triggers, and targeted evidence requests.
+
+### `evidence_requests`
+Returns a vendor evidence-request checklist for missing or weak criteria. Framework mappings are non-certifying and are intended to support, not replace, formal legal/security/privacy/compliance processes.
+
 ### `score_product`
 Backward-compatible self-assessment. It is always:
 
