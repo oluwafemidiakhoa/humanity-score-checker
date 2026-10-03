@@ -1,7 +1,7 @@
 ---
 name: humanity-score-checker
 display_name: Humanity Score Checker — Evidence-Backed Human Impact Rating for AI
-version: 3.1.0
+version: 3.1.1
 author: oluwafemidiakhoa
 description: Independent AI product due diligence across Agency, Value Distribution, and Human Connection, with explicit unknowns, source snapshots, duplicate/contradiction checks, reviewer calibration, and reproducible receipts.
 price: 19
@@ -74,7 +74,7 @@ Badge colors:
 - YELLOW: 40–69
 - RED: 0–39
 
-A color band is not itself verification. An under-sourced audit is labeled `PROVISIONAL`.
+A color band is not itself verification. If minimum coverage is not met, the audit is `UNSCORED`; if a score exists but the stricter badge gate is not met, it is `PROVISIONAL`.
 
 ## `score_product`
 
@@ -110,13 +110,20 @@ A covered criterion starts at 50 and evidence shifts only that criterion. An unc
 
 ## Additional tools
 
+- `version_info`: verifies the deployed release and expected tool count.
 - `snapshot_source`: safely retrieves a public source and returns SHA-256 + retrieval metadata.
 - `decision_brief`: turns an audit into prioritized buyer/founder actions and questions.
 - `monitor_product_change`: compares evidence snapshots over time.
 - `create_audit_receipt`: creates a deterministic public receipt.
 - `compare_reviews`: compares independent reviewer coding passes.
 - `create_appeal`: creates a deterministic correction/appeal intake record.
+- `procurement_packet`: packages an audit for procurement/governance intake.
+- `evidence_requests`: generates targeted vendor evidence requests for missing or weak criteria.
 
 ## Important limitation
 
 A source snapshot hash proves the bytes retrieved by Humanity Score, but without an external trusted timestamp/archive it does not independently prove when those bytes first existed. Humanity Score is a product-impact and due-diligence framework, not regulatory, legal, safety, compliance, or third-party certification.
+
+## Release verification
+
+For MCPMarket or any managed host, call `version_info`. Humanity Score 3.1.1 should report `tool_count_expected: 13`. If a host still exposes only the original four tools, it is serving a stale deployment and should be replaced with a fresh deployment from the current GitHub `main` branch.

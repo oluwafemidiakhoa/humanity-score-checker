@@ -22,6 +22,8 @@ from review import compare_reviewer_evidence, create_appeal_record
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 
+PRODUCT_VERSION = "3.1.1"
+
 mcp = FastMCP(
     "humanity-score-checker",
     host=HOST,
@@ -29,6 +31,17 @@ mcp = FastMCP(
     stateless_http=True,
     json_response=True,
 )
+
+
+@mcp.tool()
+def version_info() -> dict[str, Any]:
+    """Return deployment/version information for cache and release verification."""
+    return {
+        "service": "humanity-score-checker",
+        "product_version": PRODUCT_VERSION,
+        "rubric_version": "3.0.0",
+        "tool_count_expected": 13,
+    }
 
 
 @mcp.tool()
