@@ -66,7 +66,7 @@ async def health(_: Request) -> JSONResponse:
         {
             "ok": True,
             "service": "humanity-score-checker",
-            "product_version": "3.1.0",
+            "product_version": "3.1.1",
             "mcp_endpoint": "/mcp",
         }
     )
