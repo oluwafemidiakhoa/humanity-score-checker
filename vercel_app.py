@@ -72,6 +72,7 @@ async def health(_: Request) -> JSONResponse:
     )
 
 
-app = mcp.streamable_http_app(transport_security=_transport_security())
+mcp.settings.transport_security = _transport_security()
+app = mcp.streamable_http_app()
 app.router.routes.append(Route("/", endpoint=health, methods=["GET"]))
 app.router.routes.append(Route("/healthz", endpoint=health, methods=["GET"]))
