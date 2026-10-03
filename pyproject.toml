@@ -13,4 +13,5 @@ authors = [{name = "Oluwafemi Idiakhoa"}]
 dependencies = ["mcp>=1.13,<2"]
 
 [tool.setuptools]
-py-modules = ["core", "server", "audit_receipt", "intelligence", "governance", "provenance", "review"]
+py-modules = ["core", "server", "vercel_app", "audit_receipt", "intelligence", "governance", "provenance", "review"]
+\n[tool.vercel]\nentrypoint = "vercel_app:app"\n
