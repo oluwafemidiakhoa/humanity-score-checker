@@ -9,7 +9,16 @@ on:
       - "Dockerfile"
       - "server.py"
       - "core.py"
+      - "vercel_app.py"
+      - "audit_receipt.py"
+      - "intelligence.py"
+      - "governance.py"
+      - "provenance.py"
+      - "review.py"
       - "pyproject.toml"
+      - "README.md"
+      - "METHODOLOGY.md"
+      - "SKILL.md"
       - ".github/workflows/publish-container.yml"
 
 permissions:
