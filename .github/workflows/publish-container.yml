@@ -16,6 +16,7 @@ on:
       - "provenance.py"
       - "review.py"
       - "pyproject.toml"
+      - "requirements.lock"
       - "README.md"
       - "METHODOLOGY.md"
       - "SKILL.md"
@@ -33,7 +34,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
