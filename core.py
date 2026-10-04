@@ -82,9 +82,24 @@ def clamp(value: float, low: float = 0.0, high: float = 100.0) -> float:
 def valid_http_url(value: str) -> bool:
     try:
         parsed = urlparse(value)
-    except Exception:
+        _ = parsed.port
+    except (TypeError, ValueError):
         return False
-    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+    return parsed.scheme in {"http", "https"} and bool(parsed.hostname)
+
+
+def source_site(value: str) -> str:
+    """Return a conservative site key so subdomains do not count as independent sources."""
+    host = (urlparse(value).hostname or "").lower().rstrip(".")
+    if not host:
+        return ""
+    parts = host.split(".")
+    if len(parts) <= 2:
+        return host
+    common_second_level = {"co", "com", "org", "net", "gov", "ac", "edu"}
+    if len(parts[-1]) == 2 and parts[-2] in common_second_level and len(parts) >= 3:
+        return ".".join(parts[-3:])
+    return ".".join(parts[-2:])
 
 
 def canonical_url(value: str) -> str:
@@ -498,10 +513,10 @@ def audit_evidence(
         }
 
     source_urls = sorted({item["source"] for item in valid})
-    source_hosts = sorted({urlparse(item["source"]).hostname or "" for item in valid})
+    source_sites = sorted({source_site(item["source"]) for item in valid if source_site(item["source"])})
     verified_source_urls = sorted({item["source"] for item in valid if item["source_verified"]})
-    verified_source_hosts = sorted(
-        {urlparse(item["source"]).hostname or "" for item in valid if item["source_verified"]}
+    verified_source_sites = sorted(
+        {source_site(item["source"]) for item in valid if item["source_verified"] and source_site(item["source"])}
     )
     unverified_source_urls = sorted(set(source_urls) - set(verified_source_urls))
     dimensions_covered = sorted({item["dimension"] for item in valid})
@@ -518,19 +533,19 @@ def audit_evidence(
     badge_eligible = (
         overall is not None
         and len(valid) >= 6
-        and len(source_hosts) >= 3
+        and len(source_sites) >= 3
         and len(dimensions_covered) == 3
         and len(criteria_covered) >= 6
         and primary_count >= 2
-        and len(verified_source_hosts) >= 2
+        and len(verified_source_sites) >= 2
     )
 
     if (
         len(valid) >= 12
-        and len(source_hosts) >= 6
+        and len(source_sites) >= 6
         and len(criteria_covered) >= 9
         and primary_count >= 3
-        and len(verified_source_hosts) >= 3
+        and len(verified_source_sites) >= 3
         and not contradictions
     ):
         evidence_confidence = "high"
@@ -598,9 +613,9 @@ def audit_evidence(
             "rejected_findings": len(rejected),
             "duplicate_findings": len(duplicates),
             "unique_sources": len(source_urls),
-            "unique_source_hosts": len(source_hosts),
+            "unique_source_hosts": len(source_sites),
             "verified_sources": len(verified_source_urls),
-            "verified_source_hosts": len(verified_source_hosts),
+            "verified_source_hosts": len(verified_source_sites),
             "verified_findings": sum(1 for item in valid if item["source_verified"]),
             "primary_findings": primary_count,
             "dimensions_covered": dimensions_covered,
@@ -610,9 +625,9 @@ def audit_evidence(
         },
         "source_integrity": {
             "verified_source_urls": verified_source_urls,
-            "verified_source_hosts": verified_source_hosts,
+            "verified_source_sites": verified_source_sites,
             "unverified_source_urls": unverified_source_urls,
-            "unique_source_hosts": source_hosts,
+            "unique_source_sites": source_sites,
             "snapshot_requirement_for_badge": 2,
             "verification_rule": (
                 "Only snapshots carrying a valid Humanity Score Ed25519 attestation "
@@ -645,7 +660,7 @@ def audit_evidence(
             (
                 "A source URL or caller-supplied hash alone is not treated as independently verified. "
                 "Badge eligibility requires valid Humanity Score Ed25519 snapshot attestations "
-                "for at least two independently hosted sources."
+                "for at least two distinct source sites; subdomains of the same site do not count separately."
             ),
             (
                 "A source snapshot hash proves the bytes retrieved by the audit process; without an external "
