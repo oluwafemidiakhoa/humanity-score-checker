@@ -22,9 +22,19 @@ class PublicReceiptTests(unittest.TestCase):
         self.assertEqual(receipt["report_hash"], self.audit["report_hash"])
         self.assertEqual(receipt["audit_date"], "2026-10-01")
         self.assertTrue(receipt["issued_at"].endswith("Z"))
+        self.assertEqual(receipt["audit_date_source"], "explicit_historical")
         self.assertEqual(len(receipt["accepted_evidence"]), 6)
         self.assertIn("source_integrity", receipt)
         self.assertIn("unknown_criteria", receipt["result"])
+
+    def test_future_audit_date_is_rejected(self):
+        audit = audit_evidence(
+            product_name="Example",
+            description="Example product",
+            evidence=[],
+        )
+        with self.assertRaises(ValueError):
+            build_public_receipt(audit, audit_date="2999-01-01")
 
     def test_html_escapes_product_name(self):
         audit = dict(self.audit)
