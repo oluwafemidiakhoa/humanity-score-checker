@@ -1,9 +1,11 @@
+import os
 import unittest
 
 from core import audit_evidence, score_self_reported, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
 from governance import build_procurement_packet, evidence_request_checklist
 from review import compare_reviewer_evidence, create_appeal_record
+from provenance import sign_document
 
 
 GOOD_EVIDENCE = [
@@ -105,7 +107,7 @@ class HumanityScoreTests(unittest.TestCase):
         self.assertEqual(result["evidence_summary"]["verified_sources"], 0)
         self.assertEqual(len(result["report_hash"]), 64)
 
-    def test_verified_snapshots_can_unlock_badge(self):
+    def test_fabricated_snapshot_metadata_does_not_unlock_badge(self):
         evidence = [dict(item) for item in GOOD_EVIDENCE]
         for index in (0, 1):
             evidence[index]["source_snapshot_sha256"] = ("%064x" % (index + 1))
@@ -116,8 +118,58 @@ class HumanityScoreTests(unittest.TestCase):
             evidence=evidence,
             product_url="https://example.com",
         )
-        self.assertTrue(result["badge_eligible"])
-        self.assertEqual(result["evidence_summary"]["verified_sources"], 2)
+        self.assertFalse(result["badge_eligible"])
+        self.assertEqual(result["evidence_summary"]["verified_sources"], 0)
+
+    def test_signed_snapshots_can_unlock_badge(self):
+        previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        try:
+            evidence = [dict(item) for item in GOOD_EVIDENCE]
+            for index in (0, 1):
+                item = evidence[index]
+                item["source_snapshot_sha256"] = ("%064x" % (index + 1))
+                item["source_retrieved_at"] = "2026-10-03T20:00:00Z"
+                item["source_snapshot_content_type"] = "text/html"
+                item["source_snapshot_bytes"] = 100 + index
+                payload = {
+                    "schema": "humanity-score.source-snapshot-attestation.v1",
+                    "source": item["source"],
+                    "source_snapshot_sha256": item["source_snapshot_sha256"],
+                    "source_retrieved_at": item["source_retrieved_at"],
+                    "source_snapshot_content_type": item["source_snapshot_content_type"],
+                    "source_snapshot_bytes": item["source_snapshot_bytes"],
+                }
+                signed = sign_document(payload, purpose="source_snapshot")
+                item["source_snapshot_signature"] = signed["signature"]
+                item["source_snapshot_key_id"] = signed["signing_key_id"]
+
+            result = audit_evidence(
+                product_name="Example",
+                description="Example product",
+                evidence=evidence,
+                product_url="https://example.com",
+            )
+            self.assertTrue(result["badge_eligible"])
+            self.assertEqual(result["evidence_summary"]["verified_sources"], 2)
+        finally:
+            if previous is None:
+                os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+
+    def test_missing_source_type_or_confidence_is_rejected(self):
+        missing_source_type = dict(GOOD_EVIDENCE[0])
+        missing_source_type.pop("source_type")
+        missing_confidence = dict(GOOD_EVIDENCE[0])
+        missing_confidence.pop("confidence")
+        result = audit_evidence(
+            product_name="Example",
+            description="Example",
+            evidence=[missing_source_type, missing_confidence],
+        )
+        self.assertEqual(result["evidence_summary"]["accepted_findings"], 0)
+        self.assertEqual(result["evidence_summary"]["rejected_findings"], 2)
 
     def test_insufficient_evidence_is_unscored_and_unknown(self):
         result = audit_evidence(
