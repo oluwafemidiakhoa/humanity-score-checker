@@ -13,16 +13,15 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
-from core import audit_evidence, score_self_reported, share_thread, unverified_badge
+from core import PRODUCT_VERSION, RUBRIC_VERSION, audit_evidence, score_self_reported, share_thread, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
 from governance import build_procurement_packet, evidence_request_checklist
-from provenance import retrieve_source_snapshot
+from provenance import retrieve_source_snapshot, sign_document, signing_metadata
 from review import compare_reviewer_evidence, create_appeal_record
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 
-PRODUCT_VERSION = "3.1.1"
 
 mcp = FastMCP(
     "humanity-score-checker",
@@ -39,8 +38,9 @@ def version_info() -> dict[str, Any]:
     return {
         "service": "humanity-score-checker",
         "product_version": PRODUCT_VERSION,
-        "rubric_version": "3.0.0",
+        "rubric_version": RUBRIC_VERSION,
         "tool_count_expected": 13,
+        "provenance_signing": signing_metadata(),
     }
 
 
@@ -82,8 +82,10 @@ def create_audit_receipt(
         human_story=human_story,
     )
     receipt = build_public_receipt(audit, audit_date=audit_date)
+    receipt_signature = sign_document(receipt, purpose="audit_receipt")
     return {
         "receipt": receipt,
+        "receipt_signature": receipt_signature,
         "markdown": receipt_markdown(receipt),
         "html": receipt_html(receipt),
     }
