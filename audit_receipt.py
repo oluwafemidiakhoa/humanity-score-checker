@@ -20,11 +20,24 @@ def build_public_receipt(audit: dict[str, Any], *, audit_date: str | None = None
     if missing:
         raise ValueError(f"Audit is missing receipt fields: {', '.join(missing)}")
 
-    receipt_date = audit_date or date.today().isoformat()
+    today = date.today()
+    if audit_date:
+        try:
+            parsed_audit_date = date.fromisoformat(audit_date)
+        except ValueError as exc:
+            raise ValueError("audit_date must be YYYY-MM-DD") from exc
+        if parsed_audit_date > today:
+            raise ValueError("audit_date cannot be in the future")
+        receipt_date = parsed_audit_date.isoformat()
+        audit_date_source = "explicit_historical"
+    else:
+        receipt_date = today.isoformat()
+        audit_date_source = "server_current_date"
     issued_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return {
         "schema": "humanity-score.public-audit-receipt.v3",
         "audit_date": receipt_date,
+        "audit_date_source": audit_date_source,
         "issued_at": issued_at,
         "product": {
             "name": audit["product_name"],
@@ -106,6 +119,13 @@ def receipt_markdown(receipt: dict[str, Any]) -> str:
                 if item.get("source_snapshot_sha256") else '- Snapshot: not independently preserved'
             ),
             (
+                f'- Snapshot verification: {"VERIFIED" if item.get("source_verified") else "UNVERIFIED"}'
+                if item.get("source_snapshot_sha256") else ''
+            ),
+            (
+                f'- Claim review: {"VERIFIED SUPPORTED" if item.get("claim_review_verified") else "NOT VERIFIED"}'
+            ),
+            (
                 f'- Retrieved at: {item.get("source_retrieved_at")}'
                 if item.get("source_retrieved_at") else ''
             ),
@@ -132,9 +152,15 @@ def receipt_html(receipt: dict[str, Any]) -> str:
         + f'<p><a href="{html.escape(item["source"], quote=True)}">Source</a> · {html.escape(item["source_type"])} · impact {item["impact"]} · confidence {item["confidence"]}</p>'
         + (
             f'<p>Snapshot SHA-256: <code>{html.escape(item["source_snapshot_sha256"])}</code> · '
-            f'retrieved {html.escape(item["source_retrieved_at"])}</p>'
+            f'retrieved {html.escape(item["source_retrieved_at"])} · '
+            f'<strong>{"VERIFIED" if item.get("source_verified") else "UNVERIFIED"}</strong></p>'
             if item.get("source_snapshot_sha256") and item.get("source_retrieved_at")
             else '<p><em>Source content was not independently preserved for this finding.</em></p>'
+        )
+        + (
+            '<p><strong>Claim review: VERIFIED SUPPORTED</strong></p>'
+            if item.get("claim_review_verified")
+            else '<p><strong>Claim review: NOT VERIFIED</strong></p>'
         )
         + "</article>"
         for item in receipt["accepted_evidence"]
