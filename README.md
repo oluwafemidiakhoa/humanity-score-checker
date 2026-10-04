@@ -4,8 +4,8 @@
 
 Humanity Score asks: **before a buyer, founder, procurement team, or investor trusts an AI product, what does the documented evidence actually support about Human Agency, Value Distribution, and Human Connection?**
 
-**Product version:** 3.3.0  
-**Current rubric:** 3.2.0  
+**Product version:** 3.3.1  
+**Current rubric:** 3.2.1  
 **Founder Audit:** $499 one-time — [Book the audit](https://book.stripe.com/eVq3cu0N71pucyIf8Eao80b)  
 **MCPMarket tool price:** $19
 
@@ -135,7 +135,7 @@ Badge eligibility additionally requires:
 - at least 6 distinct source sites;
 - at least 3 primary-source findings;
 - at least 3 distinct source sites with valid Humanity Score signed snapshot attestations;
-- a valid signed Humanity Score human claim-review attestation for every criterion;
+- a valid signed Humanity Score human claim-review attestation for every criterion, bound to the audited product name and canonical product URL;
 - no unresolved contradictions.
 
 Until those gates pass, the audit is `PROVISIONAL` or `UNSCORED`.
@@ -296,7 +296,7 @@ MIT © 2026 Oluwafemi Idiakhoa
 
 For source snapshots and audit receipts, configure a stable 32-byte Ed25519 private key in `HUMANITY_SCORE_SIGNING_KEY` (64 hex characters or base64url). Keep this service key secret and stable across deployments.
 
-Human claim review uses a **separate offline authority**. Keep `HUMANITY_SCORE_REVIEW_SIGNING_KEY` off the public MCP server. A human reviewer uses it only with the repository's privileged `review_cli.py` after manually checking each finding against its captured source. Public deployments should receive the corresponding trusted review public key via `HUMANITY_SCORE_TRUSTED_REVIEW_PUBLIC_KEYS_JSON`.
+Human claim review uses a **separate offline authority** and every signed review is bound to the audited product identity. Keep `HUMANITY_SCORE_REVIEW_SIGNING_KEY` off the public MCP server. A human reviewer uses it only with the repository's privileged `review_cli.py` after manually checking each finding against its captured source. Public deployments should receive the corresponding trusted review public key via `HUMANITY_SCORE_TRUSTED_REVIEW_PUBLIC_KEYS_JSON`.
 
 Historical service public keys may be retained through `HUMANITY_SCORE_TRUSTED_PUBLIC_KEYS_JSON`; historical review public keys may be retained through `HUMANITY_SCORE_TRUSTED_REVIEW_PUBLIC_KEYS_JSON`.
 
