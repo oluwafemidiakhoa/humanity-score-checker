@@ -7,7 +7,7 @@ its signed source snapshot before the separate review key is used.
 Usage:
   HUMANITY_SCORE_SIGNING_KEY=... \
   HUMANITY_SCORE_REVIEW_SIGNING_KEY=... \
-  python review_cli.py input.json output.json --reviewer-id reviewer-a --confirm-supported
+  python review_cli.py input.json output.json --reviewer-id reviewer-a --product-name "Example" --product-url https://example.com --confirm-supported
 
 The input may be either a JSON array of evidence objects or an object containing
 an "evidence" array.
@@ -44,6 +44,8 @@ def main() -> None:
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--reviewer-id", required=True)
+    parser.add_argument("--product-name", required=True)
+    parser.add_argument("--product-url", required=True)
     parser.add_argument(
         "--confirm-supported",
         action="store_true",
@@ -67,11 +69,19 @@ def main() -> None:
                 f"Evidence item {index} does not carry a valid Humanity Score source-snapshot attestation."
             )
         updated = dict(item)
+        support_excerpt = str(updated.get("claim_support_excerpt", "")).strip()
+        if len(support_excerpt) < 20:
+            raise SystemExit(
+                f"Evidence item {index} needs a reviewer-supplied claim_support_excerpt of at least 20 characters."
+            )
         updated.update(
             issue_claim_review_attestation(
                 updated,
                 reviewer_id=args.reviewer_id,
                 reviewed_at=reviewed_at,
+                product_name=args.product_name,
+                product_url=args.product_url,
+                support_excerpt=support_excerpt,
             )
         )
         reviewed.append(updated)

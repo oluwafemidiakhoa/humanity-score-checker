@@ -2,7 +2,7 @@
 
 Public, preliminary Humanity Score audits of AI products.
 
-**Historical cohort note:** the audits dated 2026-10-01 through 2026-10-02 were produced with rubric version 2.0.0 and remain immutable historical receipts. Current methodology is rubric 3.1.0; future re-audits must create new receipts and report hashes rather than silently rewriting this cohort.
+**Historical cohort note:** the audits dated 2026-10-01 through 2026-10-02 were produced with rubric version 2.0.0 and remain immutable historical receipts. Current methodology is rubric 3.2.1; future re-audits must create new receipts and report hashes rather than silently rewriting this cohort.
 
 This index is **not a ranking**. Products are listed alphabetically. Scores reflect the documented evidence captured for each audit date; they do not prove real-world outcomes, regulatory compliance, legal compliance, safety, or government certification.
 
@@ -33,7 +33,7 @@ Payment does not buy a higher score or a favorable badge.
 
 Each audit directory contains the disclosed evidence and a deterministic report hash. The full audit record includes source URLs, evidence gaps, limitations, correction policy, and methodology version.
 
-Rubric 2 receipts do not imply that source content was independently snapshotted. Rubric 3.1 adds signed source-integrity attestations, UNKNOWN handling for uncovered criteria, duplicate-claim checks, contradiction reporting, and reviewer-calibration support.
+Rubric 2 receipts do not imply that source content was independently snapshotted. Rubric 3.2.1 adds signed source-integrity attestations, product-bound signed human claim review for EVIDENCE-BACKED status, UNKNOWN handling, duplicate-claim checks, contradiction reporting, reviewer calibration, and receipt verification.
 
 Machine-readable cohort metadata is available in [index.json](./index.json).
 

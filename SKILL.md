@@ -1,7 +1,7 @@
 ---
 name: humanity-score-checker
 display_name: Humanity Score Checker — Evidence-Backed Human Impact Rating for AI
-version: 3.3.0
+version: 3.3.1
 author: oluwafemidiakhoa
 description: Independent AI product due diligence across Agency, Value Distribution, and Human Connection, with explicit unknowns, signed source snapshots, separately signed human claim review, duplicate/contradiction checks, reviewer calibration, and signed receipts.
 price: 19
@@ -67,7 +67,7 @@ An audit is badge eligible only when it has at least:
 - all 12 rubric criteria
 - 3 primary-source findings
 - 3 distinct source sites carrying valid Humanity Score Ed25519 snapshot attestations
-- valid signed human claim-review attestations covering all 12 criteria
+- valid signed human claim-review attestations covering all 12 criteria and bound to the audited product
 - no unresolved contradictions
 
 Badge colors:
@@ -129,4 +129,4 @@ A valid Humanity Score snapshot attestation proves that the configured deploymen
 
 ## Release verification
 
-For MCPMarket or any managed host, call `version_info`. Humanity Score 3.3.0 should report `tool_count_expected: 14`. Source/receipt signing should be configured, and the deployment should trust at least one human-review public key before it can recognize EVIDENCE-BACKED claim-review attestations. If a host still exposes only the original four tools, it is serving a stale deployment and should be replaced with a fresh deployment from the current GitHub `main` branch.
+For MCPMarket or any managed host, call `version_info`. Humanity Score 3.3.1 should report `tool_count_expected: 14`. Source/receipt signing should be configured, and the deployment should trust at least one human-review public key before it can recognize EVIDENCE-BACKED claim-review attestations. If a host still exposes only the original four tools, it is serving a stale deployment and should be replaced with a fresh deployment from the current GitHub `main` branch.
