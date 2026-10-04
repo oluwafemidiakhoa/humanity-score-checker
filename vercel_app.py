@@ -11,6 +11,7 @@ import time
 from collections import defaultdict, deque
 
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
@@ -86,7 +87,6 @@ app.router.routes.append(Route("/healthz", endpoint=health, methods=["GET"]))
 _REQUESTS: dict[str, deque[float]] = defaultdict(deque)
 
 
-@app.middleware("http")
 async def protect_mcp(request: Request, call_next):
     if not request.url.path.startswith("/mcp"):
         return await call_next(request)
@@ -131,3 +131,6 @@ async def protect_mcp(request: Request, call_next):
     bucket.append(now)
 
     return await call_next(request)
+
+
+app.add_middleware(BaseHTTPMiddleware, dispatch=protect_mcp)
