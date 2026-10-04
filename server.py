@@ -18,7 +18,7 @@ from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
 from core import PRODUCT_VERSION, RUBRIC_VERSION, audit_evidence, score_self_reported, share_thread, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
 from governance import build_procurement_packet, evidence_request_checklist
-from provenance import retrieve_source_snapshot, sign_document, signing_metadata
+from provenance import retrieve_source_snapshot, sign_document, signing_metadata, verify_document_signature
 from review import compare_reviewer_evidence, create_appeal_record
 
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -57,7 +57,7 @@ def version_info() -> dict[str, Any]:
         "service": "humanity-score-checker",
         "product_version": PRODUCT_VERSION,
         "rubric_version": RUBRIC_VERSION,
-        "tool_count_expected": 13,
+        "tool_count_expected": 14,
         "provenance_signing": signing_metadata(),
     }
 
@@ -89,7 +89,6 @@ def create_audit_receipt(
     evidence: list[dict[str, Any]],
     product_url: str = "",
     human_story: str = "",
-    audit_date: str | None = None,
 ) -> dict[str, Any]:
     """Run an evidence-backed audit and return a shareable verification receipt."""
     audit = audit_evidence(
@@ -99,13 +98,39 @@ def create_audit_receipt(
         product_url=product_url,
         human_story=human_story,
     )
-    receipt = build_public_receipt(audit, audit_date=audit_date)
+    receipt = build_public_receipt(audit)
     receipt_signature = sign_document(receipt, purpose="audit_receipt")
     return {
         "receipt": receipt,
         "receipt_signature": receipt_signature,
         "markdown": receipt_markdown(receipt),
         "html": receipt_html(receipt),
+    }
+
+
+@mcp.tool()
+def verify_receipt(
+    receipt: dict[str, Any],
+    receipt_signature: dict[str, Any],
+) -> dict[str, Any]:
+    """Verify that a receipt was signed by a current or trusted Humanity Score key."""
+    signature = str(receipt_signature.get("signature", "")).strip()
+    key_id = str(receipt_signature.get("signing_key_id", "")).strip()
+    valid = verify_document_signature(
+        receipt,
+        purpose="audit_receipt",
+        signature=signature,
+        signing_key_id=key_id,
+    )
+    return {
+        "valid": valid,
+        "report_hash": receipt.get("report_hash"),
+        "signing_key_id": key_id,
+        "signature_algorithm": receipt_signature.get("signature_algorithm", "Ed25519"),
+        "notice": (
+            "A valid signature attests that the configured Humanity Score key signed this exact receipt. "
+            "It does not independently certify the underlying product or replace evidence review."
+        ),
     }
 
 
@@ -311,6 +336,13 @@ def main() -> None:
         help="MCP transport to use (default: stdio)",
     )
     args = parser.parse_args()
+    if args.transport == "streamable-http":
+        allow_insecure = os.getenv("HUMANITY_SCORE_ALLOW_INSECURE_HTTP", "").strip() == "1"
+        if not allow_insecure:
+            raise SystemExit(
+                "Direct server.py streamable-http is disabled by default because it has no authentication middleware. "
+                "Use vercel_app.py for authenticated HTTP, or set HUMANITY_SCORE_ALLOW_INSECURE_HTTP=1 for local/private testing only."
+            )
     mcp.run(transport=args.transport)
 
 
