@@ -1,7 +1,7 @@
 # Humanity Score Methodology
 
-**Product version:** 3.3.0  
-**Rubric version:** 3.2.0
+**Product version:** 3.3.1  
+**Rubric version:** 3.2.1
 
 Humanity Score is an evidence-backed AI product due-diligence framework. It evaluates documented evidence across Human Agency, Value Distribution, and Human Connection. It is not a regulatory, legal, safety, compliance, or government certification.
 
