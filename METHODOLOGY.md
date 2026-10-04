@@ -1,7 +1,7 @@
 # Humanity Score Methodology
 
-**Product version:** 3.2.0  
-**Rubric version:** 3.1.0
+**Product version:** 3.3.0  
+**Rubric version:** 3.2.0
 
 Humanity Score is an evidence-backed AI product due-diligence framework. It evaluates documented evidence across Human Agency, Value Distribution, and Human Connection. It is not a regulatory, legal, safety, compliance, or government certification.
 
@@ -9,7 +9,8 @@ Humanity Score is an evidence-backed AI product due-diligence framework. It eval
 
 1. **Unknown is not neutral.** A criterion without accepted evidence is reported as `UNKNOWN`; it does not receive an implicit score of 50.
 2. **Evidence is criterion-specific.** A finding moves only the criterion it supports.
-3. **Independent source integrity is cryptographically gated.** A URL or caller-supplied hash is not verification. Badge eligibility requires valid Humanity Score Ed25519 snapshot attestations for at least two distinct source sites.
+3. **Independent source integrity is cryptographically gated.** A URL or caller-supplied hash is not verification. Badge eligibility requires valid Humanity Score Ed25519 snapshot attestations.
+4. **Semantic support is separately reviewed.** A signed snapshot proves retrieval, not that a submitted finding is true. EVIDENCE-BACKED status requires a separate signed human claim-review attestation for every rubric criterion.
 4. **Duplicate claims do not get extra weight.** Findings that represent the same underlying claim can share a `claim_id`; only the strongest-supported instance is counted.
 5. **Contradictions are surfaced.** Positive and negative evidence for the same criterion is shown as unresolved contradiction rather than silently hidden.
 6. **Human judgment is inspectable.** Impact and confidence are explicit fields with anchors and optional rationale/reviewer IDs.
@@ -123,7 +124,7 @@ The `snapshot_source` tool retrieves a public URL using a bounded, private-netwo
 - bounded text excerpt
 - a Humanity Score Ed25519 attestation when production signing is configured
 
-The hash identifies the retrieved bytes. The signature prevents a caller from inventing a hash/timestamp pair and presenting it as Humanity Score-verified evidence. The verifier accepts only attestations signed by the current deployment key. It does **not**, by itself, prove when those bytes first existed. For independent proof of time, persist the snapshot or hash in a trusted external timestamp/archive service.
+The hash identifies the retrieved bytes. The source signature prevents a caller from inventing a hash/timestamp pair and presenting it as Humanity Score-retrieved evidence. This still does not establish that a reviewer-authored finding is semantically supported by those bytes. That second step is represented by a separate human claim-review attestation signed with an offline reviewer key. It does **not**, by itself, prove when those bytes first existed. For independent proof of time, persist the snapshot or hash in a trusted external timestamp/archive service.
 
 ## Duplicate and derived evidence
 
@@ -165,3 +166,21 @@ A source is marked `source_verified=true` only when all signed snapshot fields v
 Public audit receipts carry a server-generated `issued_at` timestamp. When production signing is configured, `create_audit_receipt` returns an Ed25519 signature over the complete receipt. The signature attests issuance by that configured Humanity Score key; it is not an external trusted timestamp.
 
 Direct HTTP deployments must be authenticated and rate-limited. The provided Vercel entry point is fail-closed until `HUMANITY_SCORE_API_KEY` is configured.
+
+
+## Claim-review authority
+
+The production source-snapshot/receipt signing key and the human-review signing key are intentionally different trust domains.
+
+- `HUMANITY_SCORE_SIGNING_KEY`: service key used for source snapshots and receipt issuance.
+- `HUMANITY_SCORE_REVIEW_SIGNING_KEY`: privileged offline key used only by a human reviewer after inspecting findings against captured sources.
+- `HUMANITY_SCORE_TRUSTED_PUBLIC_KEYS_JSON`: historical service public keys retained for verification after rotation.
+- `HUMANITY_SCORE_TRUSTED_REVIEW_PUBLIC_KEYS_JSON`: trusted reviewer public keys, including historical ones.
+
+The public MCP should not receive the reviewer private key. It should only know the public keys needed to verify reviewer attestations.
+
+A signed human claim-review attestation binds the dimension, criterion, finding text, source URL, source type, impact, confidence, claim ID, source snapshot identity, reviewer ID, and review timestamp. Changing any of those fields invalidates the attestation.
+
+## Receipt verification
+
+`verify_receipt` checks the receipt signature against the current service public key or an explicitly trusted historical service key. A valid signature proves that the configured Humanity Score signing authority signed that exact receipt. It does not certify the audited product or independently prove the truth of every underlying claim.
