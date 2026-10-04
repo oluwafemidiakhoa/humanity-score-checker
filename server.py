@@ -18,7 +18,7 @@ from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
 from core import PRODUCT_VERSION, RUBRIC_VERSION, audit_evidence, score_self_reported, share_thread, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
 from governance import build_procurement_packet, evidence_request_checklist
-from provenance import retrieve_source_snapshot, sign_document, signing_metadata, verify_document_signature
+from provenance import retrieve_source_snapshot, review_signing_metadata, sign_document, signing_metadata, verify_document_signature
 from review import compare_reviewer_evidence, create_appeal_record
 
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -59,6 +59,7 @@ def version_info() -> dict[str, Any]:
         "rubric_version": RUBRIC_VERSION,
         "tool_count_expected": 14,
         "provenance_signing": signing_metadata(),
+        "claim_review_signing": review_signing_metadata(),
     }
 
 
