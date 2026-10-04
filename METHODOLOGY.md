@@ -1,7 +1,7 @@
 # Humanity Score Methodology
 
-**Product version:** 3.1.0  
-**Rubric version:** 3.0.0
+**Product version:** 3.2.0  
+**Rubric version:** 3.1.0
 
 Humanity Score is an evidence-backed AI product due-diligence framework. It evaluates documented evidence across Human Agency, Value Distribution, and Human Connection. It is not a regulatory, legal, safety, compliance, or government certification.
 
@@ -9,7 +9,7 @@ Humanity Score is an evidence-backed AI product due-diligence framework. It eval
 
 1. **Unknown is not neutral.** A criterion without accepted evidence is reported as `UNKNOWN`; it does not receive an implicit score of 50.
 2. **Evidence is criterion-specific.** A finding moves only the criterion it supports.
-3. **Independent source integrity is visible.** A URL alone is not enough for badge eligibility under rubric 3.0. At least two unique sources must include independently retrieved snapshot hashes and retrieval timestamps.
+3. **Independent source integrity is cryptographically gated.** A URL or caller-supplied hash is not verification. Badge eligibility requires valid Humanity Score Ed25519 snapshot attestations for at least two distinct source sites.
 4. **Duplicate claims do not get extra weight.** Findings that represent the same underlying claim can share a `claim_id`; only the strongest-supported instance is counted.
 5. **Contradictions are surfaced.** Positive and negative evidence for the same criterion is shown as unresolved contradiction rather than silently hidden.
 6. **Human judgment is inspectable.** Impact and confidence are explicit fields with anchors and optional rationale/reviewer IDs.
@@ -51,6 +51,8 @@ Each accepted finding contains:
 - optional claim ID for de-duplication
 - optional source snapshot SHA-256
 - optional source retrieval timestamp
+- optional source content type and byte length
+- optional Humanity Score snapshot signature and signing-key ID
 - optional archive URL
 
 ### Impact anchors
@@ -102,25 +104,26 @@ An audit can be labeled `EVIDENCE-BACKED` only when all of the following are tru
 
 - an overall score exists;
 - at least 6 accepted findings;
-- at least 3 unique source URLs;
+- at least 3 distinct source sites;
 - all 3 dimensions covered;
 - at least 6 distinct criteria covered;
 - at least 2 primary-source findings;
-- at least 2 unique source URLs independently snapshotted with SHA-256 + retrieval timestamp.
+- at least 2 distinct source sites with valid Humanity Score Ed25519 snapshot attestations.
 
 Otherwise the audit is `PROVISIONAL` or `UNSCORED`.
 
 ## Source snapshots and proof of time
 
-The `snapshot_source` tool retrieves a public URL using a bounded, private-network-blocking fetcher and returns:
+The `snapshot_source` tool retrieves a public URL using a bounded, private-network-blocking, DNS-pinned fetcher and returns:
 
 - requested and final URL
 - retrieval timestamp
 - SHA-256 of the retrieved bytes
 - content type and byte length
 - bounded text excerpt
+- a Humanity Score Ed25519 attestation when production signing is configured
 
-The hash proves what bytes were retrieved by the tool. It does **not**, by itself, prove when those bytes first existed. For independent proof of time, persist the snapshot or hash in a trusted external timestamp/archive service.
+The hash identifies the retrieved bytes. The signature prevents a caller from inventing a hash/timestamp pair and presenting it as Humanity Score-verified evidence. The verifier accepts only attestations signed by the current deployment key. It does **not**, by itself, prove when those bytes first existed. For independent proof of time, persist the snapshot or hash in a trusted external timestamp/archive service.
 
 ## Duplicate and derived evidence
 
@@ -151,3 +154,14 @@ The `create_appeal` tool creates a deterministic correction/appeal record tied t
 ## Legacy public cohort
 
 The public audits dated 2026-10-01 through 2026-10-02 were produced with rubric 2.0.0 and are preserved as historical receipts. They should not be silently relabeled as rubric 3.0.0. A future re-audit must create a new report hash and new receipt.
+
+
+## Production trust boundary
+
+`source_type` and `confidence` are required. Missing values are rejected rather than receiving optimistic defaults.
+
+A source is marked `source_verified=true` only when all signed snapshot fields validate against the deployment's configured Ed25519 public key. Caller-supplied SHA-256 values, timestamps, content types, byte counts, or signatures that do not verify remain unverified.
+
+Public audit receipts carry a server-generated `issued_at` timestamp. When production signing is configured, `create_audit_receipt` returns an Ed25519 signature over the complete receipt. The signature attests issuance by that configured Humanity Score key; it is not an external trusted timestamp.
+
+Direct HTTP deployments must be authenticated and rate-limited. The provided Vercel entry point is fail-closed until `HUMANITY_SCORE_API_KEY` is configured.
