@@ -21,7 +21,7 @@ A correction request should include:
 - requested correction
 - identity or organization of the submitter
 
-The `create_appeal` MCP tool can generate a deterministic appeal intake record.
+The `create_appeal` MCP tool can generate and sign an appeal record for submission. It does not itself persist or submit the appeal.
 
 ## Review process
 
