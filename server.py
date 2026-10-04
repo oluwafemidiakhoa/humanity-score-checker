@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 import os
+import time
+from collections import deque
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -21,6 +23,22 @@ from review import compare_reviewer_evidence, create_appeal_record
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
+
+_SNAPSHOT_CALLS: deque[float] = deque()
+
+
+def _enforce_snapshot_rate_limit() -> None:
+    try:
+        limit = int(os.getenv("HUMANITY_SCORE_SNAPSHOT_RATE_LIMIT_PER_MINUTE", "30"))
+    except ValueError:
+        limit = 30
+    limit = max(1, min(limit, 300))
+    now = time.monotonic()
+    while _SNAPSHOT_CALLS and now - _SNAPSHOT_CALLS[0] >= 60:
+        _SNAPSHOT_CALLS.popleft()
+    if len(_SNAPSHOT_CALLS) >= limit:
+        raise ValueError("snapshot_source rate limit exceeded; retry later")
+    _SNAPSHOT_CALLS.append(now)
 
 
 mcp = FastMCP(
@@ -152,6 +170,7 @@ def snapshot_source(url: str) -> dict[str, Any]:
     This tool rejects private/local network destinations and returns a SHA-256
     hash plus retrieval timestamp for evidence provenance.
     """
+    _enforce_snapshot_rate_limit()
     return retrieve_source_snapshot(url)
 
 
@@ -174,7 +193,7 @@ def create_appeal(
     requested_correction: str,
 ) -> dict[str, Any]:
     """Create a deterministic correction/appeal intake record."""
-    return create_appeal_record(
+    appeal = create_appeal_record(
         product_name=product_name,
         report_hash=report_hash,
         appellant=appellant,
@@ -182,6 +201,10 @@ def create_appeal(
         evidence_urls=evidence_urls,
         requested_correction=requested_correction,
     )
+    return {
+        "appeal": appeal,
+        "appeal_signature": sign_document(appeal, purpose="appeal_record"),
+    }
 
 
 @mcp.tool()
