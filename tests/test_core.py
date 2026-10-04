@@ -318,7 +318,9 @@ class HumanityScoreTests(unittest.TestCase):
 
     def test_full_signed_human_review_can_unlock_badge(self):
         previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        previous_review = os.environ.get("HUMANITY_SCORE_REVIEW_SIGNING_KEY")
         os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = "33" * 32
         try:
             evidence = signed_and_reviewed_evidence()
             result = audit_evidence(
