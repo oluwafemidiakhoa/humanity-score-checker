@@ -23,7 +23,7 @@ jobs:
         run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Syntax check
-        run: python -m py_compile core.py server.py vercel_app.py audit_receipt.py intelligence.py governance.py provenance.py review.py tests/mcp_client_smoke.py tests/mcp_stdio_smoke.py tests/test_audit_receipt.py tests/test_core.py tests/test_provenance.py tests/test_public_audits.py
+        run: python -m py_compile core.py server.py vercel_app.py audit_receipt.py intelligence.py governance.py provenance.py review.py review_cli.py tests/mcp_client_smoke.py tests/mcp_stdio_smoke.py tests/test_audit_receipt.py tests/test_core.py tests/test_provenance.py tests/test_public_audits.py
 
       - name: Installed package import smoke
         run: cd /tmp && python -c "import core, audit_receipt, intelligence, governance, provenance, review, server, vercel_app"
