@@ -1,9 +1,8 @@
 """Core scoring logic for Humanity Score Checker.
 
-Product 3.1 introduces methodology 3.0: unknown criteria are no longer silently
-treated as neutral, duplicate claims are de-duplicated, contradictory evidence
-is surfaced, and independently retrieved source snapshots can be attached to
-findings.
+Product 3.3.1 / rubric 3.2.1: unknown criteria remain explicit, source snapshots
+are cryptographically attested, and EVIDENCE-BACKED status additionally requires
+product-bound human claim-review attestations across the full rubric.
 """
 
 from __future__ import annotations
@@ -486,14 +485,15 @@ def audit_evidence(
     product_url: str = "",
     human_story: str = "",
 ) -> dict[str, Any]:
-    """Compute an evidence-backed Humanity Score using rubric 3.0.
+    """Compute a Humanity Score using rubric 3.2.1.
 
     Uncovered criteria are represented as None/unknown rather than receiving an
     implicit neutral 50. An overall score is produced only after evidence spans
     all three dimensions and at least six distinct criteria.
 
-    Badge eligibility additionally requires independently retrieved source
-    snapshot metadata for at least two unique source URLs.
+    EVIDENCE-BACKED badge eligibility additionally requires complete rubric
+    coverage, signed source snapshots, product-bound signed human claim review,
+    and no unresolved contradictions.
     """
 
     if not isinstance(product_name, str) or not product_name.strip():
