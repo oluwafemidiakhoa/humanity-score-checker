@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import json
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -21,9 +21,11 @@ def build_public_receipt(audit: dict[str, Any], *, audit_date: str | None = None
         raise ValueError(f"Audit is missing receipt fields: {', '.join(missing)}")
 
     receipt_date = audit_date or date.today().isoformat()
+    issued_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return {
-        "schema": "humanity-score.public-audit-receipt.v2",
+        "schema": "humanity-score.public-audit-receipt.v3",
         "audit_date": receipt_date,
+        "issued_at": issued_at,
         "product": {
             "name": audit["product_name"],
             "url": audit["product_url"],
@@ -68,6 +70,7 @@ def receipt_markdown(receipt: dict[str, Any]) -> str:
         f'# Humanity Score Audit — {receipt["product"]["name"]}',
         "",
         f'**Audit date:** {receipt["audit_date"]}',
+        f'**Issued at:** {receipt["issued_at"]}',
         (
             f'**Humanity Score:** {result["humanity_score"]}/100'
             if result["humanity_score"] is not None
@@ -147,7 +150,7 @@ def receipt_html(receipt: dict[str, Any]) -> str:
         f"<h1>Humanity Score Audit — {html.escape(receipt['product']['name'])}</h1>"
         f"<p class=\"score\">{html.escape(score_display)}</p>"
         f"<p><strong>{html.escape(result['badge_label'])}</strong></p>"
-        f"<p class=\"meta\">Audit date {html.escape(receipt['audit_date'])} · confidence {html.escape(result['evidence_confidence'])} · rubric {html.escape(receipt['rubric_version'])}</p>"
+        f"<p class=\"meta\">Audit date {html.escape(receipt['audit_date'])} · issued {html.escape(receipt['issued_at'])} · confidence {html.escape(result['evidence_confidence'])} · rubric {html.escape(receipt['rubric_version'])}</p>"
         f"<div class=\"dims\"><div class=\"card\"><strong>Agency</strong><br>{dims['agency'] if dims['agency'] is not None else 'UNKNOWN'}{('/100' if dims['agency'] is not None else '')}</div>"
         f"<div class=\"card\"><strong>Value Distribution</strong><br>{dims['value_distribution'] if dims['value_distribution'] is not None else 'UNKNOWN'}{('/100' if dims['value_distribution'] is not None else '')}</div>"
         f"<div class=\"card\"><strong>Human Connection</strong><br>{dims['human_connection'] if dims['human_connection'] is not None else 'UNKNOWN'}{('/100' if dims['human_connection'] is not None else '')}</div></div>"
