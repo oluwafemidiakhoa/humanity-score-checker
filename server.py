@@ -218,7 +218,7 @@ def create_appeal(
     evidence_urls: list[str],
     requested_correction: str,
 ) -> dict[str, Any]:
-    """Create a deterministic correction/appeal intake record."""
+    """Create a signed appeal record for the caller to submit; this tool does not persist it."""
     appeal = create_appeal_record(
         product_name=product_name,
         report_hash=report_hash,
@@ -230,6 +230,12 @@ def create_appeal(
     return {
         "appeal": appeal,
         "appeal_signature": sign_document(appeal, purpose="appeal_record"),
+        "submitted": False,
+        "persistence": "none",
+        "notice": (
+            "This tool prepares and signs an appeal record but does not submit or persist it. "
+            "The caller must deliver it through an explicit review channel."
+        ),
     }
 
 
