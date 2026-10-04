@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from core import DIMENSIONS, normalize_evidence
+from core import DIMENSIONS, normalize_evidence, valid_http_url
 
 
 def _hash(payload: dict[str, Any]) -> str:
@@ -109,16 +109,28 @@ def create_appeal_record(
 ) -> dict[str, Any]:
     """Create a deterministic appeal/correction intake record."""
 
-    if len(claim.strip()) < 20:
-        raise ValueError("claim must contain at least 20 characters")
-    if len(requested_correction.strip()) < 10:
-        raise ValueError("requested_correction must contain at least 10 characters")
+    normalized_hash = report_hash.strip().lower()
+    if len(normalized_hash) != 64 or any(ch not in "0123456789abcdef" for ch in normalized_hash):
+        raise ValueError("report_hash must be a 64-character SHA-256 hex digest")
+    if not product_name.strip() or len(product_name.strip()) > 200:
+        raise ValueError("product_name is required and must not exceed 200 characters")
+    if not appellant.strip() or len(appellant.strip()) > 500:
+        raise ValueError("appellant is required and must not exceed 500 characters")
+    if len(claim.strip()) < 20 or len(claim.strip()) > 5000:
+        raise ValueError("claim must contain 20 to 5000 characters")
+    if len(requested_correction.strip()) < 10 or len(requested_correction.strip()) > 5000:
+        raise ValueError("requested_correction must contain 10 to 5000 characters")
+    if len(evidence_urls) > 50:
+        raise ValueError("evidence_urls must not contain more than 50 URLs")
+    invalid_urls = [url for url in evidence_urls if url.strip() and not valid_http_url(url.strip())]
+    if invalid_urls:
+        raise ValueError("all evidence_urls must use http(s)")
 
     submitted_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     payload = {
         "schema": "humanity-score.appeal.v1",
         "product_name": product_name.strip(),
-        "report_hash": report_hash.strip().lower(),
+        "report_hash": normalized_hash,
         "appellant": appellant.strip(),
         "claim": claim.strip(),
         "evidence_urls": sorted({url.strip() for url in evidence_urls if url.strip()}),
