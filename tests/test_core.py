@@ -276,7 +276,9 @@ class HumanityScoreTests(unittest.TestCase):
 
     def test_signed_snapshots_without_claim_review_cannot_unlock_badge(self):
         previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        previous_review = os.environ.get("HUMANITY_SCORE_REVIEW_SIGNING_KEY")
         os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = "33" * 32
         try:
             evidence = [dict(item) for item in FULL_EVIDENCE]
             for index, item in enumerate(evidence):
@@ -309,6 +311,10 @@ class HumanityScoreTests(unittest.TestCase):
                 os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
             else:
                 os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+            if previous_review is None:
+                os.environ.pop("HUMANITY_SCORE_REVIEW_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
 
     def test_full_signed_human_review_can_unlock_badge(self):
         previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
@@ -329,6 +335,10 @@ class HumanityScoreTests(unittest.TestCase):
                 os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
             else:
                 os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+            if previous_review is None:
+                os.environ.pop("HUMANITY_SCORE_REVIEW_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
 
     def test_missing_source_type_or_confidence_is_rejected(self):
         missing_source_type = dict(GOOD_EVIDENCE[0])
