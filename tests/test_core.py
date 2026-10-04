@@ -126,8 +126,16 @@ class HumanityScoreTests(unittest.TestCase):
         os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
         try:
             evidence = [dict(item) for item in GOOD_EVIDENCE]
+            source_hosts = [
+                "alpha.example.org",
+                "beta.example.net",
+                "gamma.example.com",
+                "delta.example.edu",
+                "epsilon.example.io",
+                "zeta.example.dev",
+            ]
             for index, item in enumerate(evidence):
-                item["source"] = f"https://source{index}.example.org/evidence/{index}"
+                item["source"] = f"https://{source_hosts[index]}/evidence/{index}"
             for index in (0, 1):
                 item = evidence[index]
                 item["source_snapshot_sha256"] = ("%064x" % (index + 1))
