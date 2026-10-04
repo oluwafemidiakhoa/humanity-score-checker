@@ -13,10 +13,11 @@ The Founder Audit is a deeper, evidence-backed review of an AI product using the
 - Evidence gaps and limitations
 - Prioritized action brief
 - Buyer due-diligence questions
-- Shareable verification receipt with deterministic report hash
+- Shareable signed verification receipt with deterministic report hash
 - Explicit UNKNOWN criteria when evidence is missing
 - Duplicate-claim and contradiction checks
-- Source-integrity metadata, including snapshot hashes when independently retrieved
+- Source-integrity metadata, including signed source snapshots when independently retrieved
+- Human claim-review attestations for any result represented as EVIDENCE-BACKED
 - Clear distinction between documented evidence, missing evidence, and interpretation
 
 ## What checkout collects
@@ -33,10 +34,11 @@ The live Stripe checkout collects:
 1. Buyer completes the $499 checkout.
 2. Humanity Score reviews the submitted product URL and public evidence.
 3. Public evidence can be independently snapshotted and hashed for provenance.
-4. Evidence is de-duplicated, contradiction-checked, and scored against the published rubric.
-5. Missing criteria remain UNKNOWN rather than receiving a neutral score.
-6. A decision brief is produced from the evidence-backed audit.
-7. The buyer receives the completed audit artifact and verification receipt.
+4. Evidence is de-duplicated and contradiction-checked; a human reviewer checks each badge-eligible claim against its captured source before signing the claim-review attestation.
+5. Reviewed evidence is scored against the published rubric.
+6. Missing criteria remain UNKNOWN rather than receiving a neutral score.
+7. A decision brief is produced from the audit.
+8. The buyer receives the completed audit artifact and signed verification receipt.
 
 If the available evidence is insufficient, the audit must report the evidence gaps rather than inventing findings or awarding a favorable score.
 
