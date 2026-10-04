@@ -4,16 +4,27 @@
 
 Humanity Score asks: **before a buyer, founder, procurement team, or investor trusts an AI product, what does the documented evidence actually support about Human Agency, Value Distribution, and Human Connection?**
 
-**Product version:** 3.2.0  
-**Current rubric:** 3.1.0  
+**Product version:** 3.3.0  
+**Current rubric:** 3.2.0  
 **Founder Audit:** $499 one-time — [Book the audit](https://book.stripe.com/eVq3cu0N71pucyIf8Eao80b)  
 **MCPMarket tool price:** $19
 
 > Humanity Score is a product-impact and due-diligence framework. It is not legal advice, regulatory approval, safety certification, compliance certification, or government certification.
 
-## What changed in 3.2
+## What changed in 3.3
 
-Rubric 3.1 hardens the production trust boundary:
+Rubric 3.2 closes the semantic trust gap left after snapshot signing:
+
+- **A signed snapshot is not enough.** EVIDENCE-BACKED status now requires a signed Humanity Score human claim-review attestation showing that each scored finding was reviewed against its captured source.
+- **Full-rubric badge coverage is required.** EVIDENCE-BACKED status requires all 12 criteria, at least 12 accepted findings, at least 6 distinct source sites, at least 3 primary findings, and at least 3 independently snapshotted source sites.
+- **Human-review authority is separated from the public service key.** Claim-review signatures use a separate offline `HUMANITY_SCORE_REVIEW_SIGNING_KEY`; the public MCP should receive only trusted review public keys.
+- **Historical signing keys can remain trusted after key rotation.**
+- **Non-global IPs are blocked.** Source retrieval now requires globally routable IP addresses.
+- **Public receipt verification is first-class.** `verify_receipt` verifies receipt signatures.
+- **Raw `server.py --transport streamable-http` is disabled by default.** Authenticated HTTP should use `vercel_app.py`; insecure raw HTTP requires an explicit local-test override.
+- **Production container publishing is CI-gated.** Images publish only after successful main-branch CI.
+
+The previous 3.2 protections remain:
 
 - **Caller-supplied hashes no longer count as verified evidence.** Badge verification requires a valid Humanity Score Ed25519 snapshot attestation.
 - **Source snapshots are DNS-pinned.** The fetcher resolves and validates a public IP, then connects to that exact IP; redirects are revalidated.
@@ -29,7 +40,7 @@ The previous rubric-3 protections remain:
 - **Unknown is not neutral.** Criteria without accepted evidence are reported as `UNKNOWN`; they are not silently scored 50.
 - **Overall scores can be withheld.** An audit stays `UNSCORED` until evidence covers all 3 dimensions and at least 6 distinct criteria.
 - **Source integrity is explicit.** Evidence can include independently retrieved snapshot SHA-256 hashes and retrieval timestamps.
-- **Badge eligibility is stricter.** At least 2 unique sources must be independently snapshotted.
+- **Badge eligibility is source-gated.** Source snapshots must carry valid Humanity Score signatures.
 - **Duplicate/derived claims are de-duplicated.** A shared `claim_id` prevents repeated versions of one claim from accumulating extra weight.
 - **Contradictions are visible.** Positive and negative evidence on the same criterion is surfaced instead of hidden.
 - **Reviewer calibration is supported.** Independent coding passes can be compared and disagreements inspected.
@@ -118,10 +129,14 @@ An overall score is produced only after evidence covers:
 
 Badge eligibility additionally requires:
 
-- at least 6 accepted findings;
-- at least 3 distinct source sites;
-- at least 2 primary-source findings;
-- at least 2 distinct source sites with valid Humanity Score signed snapshot attestations.
+- at least 12 accepted findings;
+- all 12 rubric criteria covered;
+- all 3 dimensions covered;
+- at least 6 distinct source sites;
+- at least 3 primary-source findings;
+- at least 3 distinct source sites with valid Humanity Score signed snapshot attestations;
+- a valid signed Humanity Score human claim-review attestation for every criterion;
+- no unresolved contradictions.
 
 Until those gates pass, the audit is `PROVISIONAL` or `UNSCORED`.
 
@@ -171,6 +186,9 @@ Safely retrieves a **public** evidence URL and returns:
 The fetcher rejects localhost/private/reserved network destinations, pins the validated public IP for the connection, revalidates redirects, and enforces redirect/response-size limits.
 
 A valid Humanity Score attestation proves that the configured Humanity Score deployment retrieved the represented bytes and metadata. It does **not** independently prove when those bytes first existed; use a trusted external timestamp or archival service when independent proof of time is required.
+
+### `verify_receipt`
+Verifies that an audit receipt was signed by the current Humanity Score service key or a trusted historical signing key. Signature validity attests issuance of that exact receipt; it is not product certification.
 
 ### `decision_brief`
 Adds prioritized actions, buyer questions, review signals, monitoring triggers, unknown criteria, contradictions, and source-integrity context.
@@ -245,15 +263,24 @@ Historical receipts are immutable. Evidence-backed corrections produce a new aud
 ## Running locally
 
 ```bash
-python -m pip install "mcp>=1.13,<2"
+python -m pip install -r requirements.lock
+python -m pip install --no-deps .
 python server.py
 ```
+
+For local HTTP smoke testing only:
+
+```bash
+HUMANITY_SCORE_ALLOW_INSECURE_HTTP=1 python server.py --transport streamable-http
+```
+
+Do not use that raw HTTP mode for public production traffic.
 
 ## Testing
 
 ```bash
 python -m unittest discover -s tests -v
-python -m py_compile core.py server.py audit_receipt.py intelligence.py provenance.py review.py
+python -m py_compile core.py server.py vercel_app.py audit_receipt.py intelligence.py governance.py provenance.py review.py review_cli.py
 ```
 
 ## Security boundary
@@ -267,8 +294,12 @@ MIT © 2026 Oluwafemi Idiakhoa
 
 ## Production configuration
 
-For production badge issuance, configure a stable 32-byte Ed25519 private key in `HUMANITY_SCORE_SIGNING_KEY` (64 hex characters or base64url). Keep this key secret and stable across deployments.
+For source snapshots and audit receipts, configure a stable 32-byte Ed25519 private key in `HUMANITY_SCORE_SIGNING_KEY` (64 hex characters or base64url). Keep this service key secret and stable across deployments.
 
-For the direct Vercel HTTP MCP endpoint, also configure `HUMANITY_SCORE_API_KEY`. Requests to `/mcp` fail closed when this variable is absent. Optional rate controls are `HUMANITY_SCORE_RATE_LIMIT_PER_MINUTE` and `HUMANITY_SCORE_SNAPSHOT_RATE_LIMIT_PER_MINUTE`.
+Human claim review uses a **separate offline authority**. Keep `HUMANITY_SCORE_REVIEW_SIGNING_KEY` off the public MCP server. A human reviewer uses it only with the repository's privileged `review_cli.py` after manually checking each finding against its captured source. Public deployments should receive the corresponding trusted review public key via `HUMANITY_SCORE_TRUSTED_REVIEW_PUBLIC_KEYS_JSON`.
 
-MCPMarket's managed stdio deployment does not require the HTTP API key, but it **does** need `HUMANITY_SCORE_SIGNING_KEY` if you want evidence-backed badge eligibility.
+Historical service public keys may be retained through `HUMANITY_SCORE_TRUSTED_PUBLIC_KEYS_JSON`; historical review public keys may be retained through `HUMANITY_SCORE_TRUSTED_REVIEW_PUBLIC_KEYS_JSON`.
+
+For the direct Vercel HTTP MCP endpoint, also configure `HUMANITY_SCORE_API_KEY`. Requests to `/mcp` fail closed when this variable is absent. The in-process rate limiter is only a local safeguard; use platform-level/global rate limiting for a public high-volume endpoint.
+
+MCPMarket's managed stdio deployment does not require the HTTP API key. It does need `HUMANITY_SCORE_SIGNING_KEY` for signed source snapshots and the trusted review public-key registry to recognize independently reviewed claims.
