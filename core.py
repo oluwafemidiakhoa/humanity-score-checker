@@ -17,8 +17,16 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
-PRODUCT_VERSION = "3.1.0"
-RUBRIC_VERSION = "3.0.0"
+from provenance import verify_snapshot_attestation
+
+PRODUCT_VERSION = "3.2.0"
+RUBRIC_VERSION = "3.1.0"
+
+MAX_PRODUCT_NAME_CHARS = 200
+MAX_DESCRIPTION_CHARS = 10_000
+MAX_HUMAN_STORY_CHARS = 10_000
+MAX_FINDING_CHARS = 5_000
+MAX_EVIDENCE_ITEMS = 200
 
 DIMENSIONS: dict[str, tuple[str, ...]] = {
     "agency": (
@@ -74,9 +82,24 @@ def clamp(value: float, low: float = 0.0, high: float = 100.0) -> float:
 def valid_http_url(value: str) -> bool:
     try:
         parsed = urlparse(value)
-    except Exception:
+        _ = parsed.port
+    except (TypeError, ValueError):
         return False
-    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+    return parsed.scheme in {"http", "https"} and bool(parsed.hostname)
+
+
+def source_site(value: str) -> str:
+    """Return a conservative site key so subdomains do not count as independent sources."""
+    host = (urlparse(value).hostname or "").lower().rstrip(".")
+    if not host:
+        return ""
+    parts = host.split(".")
+    if len(parts) <= 2:
+        return host
+    common_second_level = {"co", "com", "org", "net", "gov", "ac", "edu"}
+    if len(parts[-1]) == 2 and parts[-2] in common_second_level and len(parts) >= 3:
+        return ".".join(parts[-3:])
+    return ".".join(parts[-2:])
 
 
 def canonical_url(value: str) -> str:
@@ -195,19 +218,26 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
     criterion = str(item.get("criterion", "")).strip().lower()
     finding = str(item.get("finding", "")).strip()
     source = str(item.get("source", "")).strip()
-    source_type = str(item.get("source_type", "primary")).strip().lower()
+    source_type = str(item.get("source_type", "")).strip().lower()
     rationale = str(item.get("rationale", "")).strip()
     reviewer_id = str(item.get("reviewer_id", "")).strip()
     claim_id = str(item.get("claim_id", "")).strip()
     source_snapshot_sha256 = str(item.get("source_snapshot_sha256", "")).strip().lower()
     source_retrieved_at = str(item.get("source_retrieved_at", "")).strip()
     source_archive_url = str(item.get("source_archive_url", "")).strip()
+    source_snapshot_content_type = str(item.get("source_snapshot_content_type", "")).strip()
+    source_snapshot_signature = str(item.get("source_snapshot_signature", "")).strip()
+    source_snapshot_key_id = str(item.get("source_snapshot_key_id", "")).strip()
+    try:
+        source_snapshot_bytes = int(item.get("source_snapshot_bytes", 0) or 0)
+    except (TypeError, ValueError):
+        return None, "source_snapshot_bytes must be an integer"
 
     try:
         impact_raw = float(item.get("impact"))
-        confidence = float(item.get("confidence", 1.0))
-    except (TypeError, ValueError):
-        return None, "impact and confidence must be numeric"
+        confidence = float(item["confidence"])
+    except (KeyError, TypeError, ValueError):
+        return None, "impact and confidence are required and must be numeric"
 
     if not impact_raw.is_integer() or int(impact_raw) not in IMPACT_ANCHORS:
         return None, "impact must be one of -2, -1, 0, 1, or 2"
@@ -219,6 +249,8 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
         return None, f"unknown criterion '{criterion}' for dimension '{dimension}'"
     if len(finding) < 20:
         return None, "finding must contain at least 20 characters"
+    if len(finding) > MAX_FINDING_CHARS:
+        return None, f"finding must not exceed {MAX_FINDING_CHARS} characters"
     if not valid_http_url(source):
         return None, "source must be an http(s) URL"
     if source_type not in SOURCE_WEIGHTS:
@@ -236,7 +268,30 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
         return None, "source_archive_url must be an http(s) URL"
 
     source = canonical_url(source)
-    source_verified = bool(source_snapshot_sha256 and source_retrieved_at)
+    snapshot_present = any(
+        [
+            source_snapshot_sha256,
+            source_retrieved_at,
+            source_snapshot_content_type,
+            source_snapshot_signature,
+            source_snapshot_key_id,
+            source_snapshot_bytes,
+        ]
+    )
+    source_verified = False
+    if snapshot_present:
+        source_verified = verify_snapshot_attestation(
+            {
+                "source": source,
+                "source_snapshot_sha256": source_snapshot_sha256,
+                "source_retrieved_at": source_retrieved_at,
+                "source_snapshot_content_type": source_snapshot_content_type,
+                "source_snapshot_bytes": source_snapshot_bytes,
+                "source_snapshot_signature": source_snapshot_signature,
+                "source_snapshot_key_id": source_snapshot_key_id,
+            }
+        )
+
     resolved_claim_id = claim_id or _claim_fingerprint(dimension, criterion, finding)
 
     return {
@@ -253,6 +308,10 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
         "source_snapshot_sha256": source_snapshot_sha256,
         "source_retrieved_at": source_retrieved_at,
         "source_archive_url": source_archive_url,
+        "source_snapshot_content_type": source_snapshot_content_type,
+        "source_snapshot_bytes": source_snapshot_bytes,
+        "source_snapshot_signature": source_snapshot_signature,
+        "source_snapshot_key_id": source_snapshot_key_id,
         "source_verified": source_verified,
     }, None
 
@@ -393,6 +452,21 @@ def audit_evidence(
     snapshot metadata for at least two unique source URLs.
     """
 
+    if not isinstance(product_name, str) or not product_name.strip():
+        raise ValueError("product_name is required")
+    if len(product_name) > MAX_PRODUCT_NAME_CHARS:
+        raise ValueError(f"product_name must not exceed {MAX_PRODUCT_NAME_CHARS} characters")
+    if not isinstance(description, str) or not description.strip():
+        raise ValueError("description is required")
+    if len(description) > MAX_DESCRIPTION_CHARS:
+        raise ValueError(f"description must not exceed {MAX_DESCRIPTION_CHARS} characters")
+    if len(human_story) > MAX_HUMAN_STORY_CHARS:
+        raise ValueError(f"human_story must not exceed {MAX_HUMAN_STORY_CHARS} characters")
+    if not isinstance(evidence, list):
+        raise ValueError("evidence must be an array")
+    if len(evidence) > MAX_EVIDENCE_ITEMS:
+        raise ValueError(f"evidence must not contain more than {MAX_EVIDENCE_ITEMS} items")
+
     structurally_valid: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
 
@@ -439,7 +513,11 @@ def audit_evidence(
         }
 
     source_urls = sorted({item["source"] for item in valid})
+    source_sites = sorted({source_site(item["source"]) for item in valid if source_site(item["source"])})
     verified_source_urls = sorted({item["source"] for item in valid if item["source_verified"]})
+    verified_source_sites = sorted(
+        {source_site(item["source"]) for item in valid if item["source_verified"] and source_site(item["source"])}
+    )
     unverified_source_urls = sorted(set(source_urls) - set(verified_source_urls))
     dimensions_covered = sorted({item["dimension"] for item in valid})
     criteria_covered = sorted({f'{item["dimension"]}.{item["criterion"]}' for item in valid})
@@ -455,19 +533,19 @@ def audit_evidence(
     badge_eligible = (
         overall is not None
         and len(valid) >= 6
-        and len(source_urls) >= 3
+        and len(source_sites) >= 3
         and len(dimensions_covered) == 3
         and len(criteria_covered) >= 6
         and primary_count >= 2
-        and len(verified_source_urls) >= 2
+        and len(verified_source_sites) >= 2
     )
 
     if (
         len(valid) >= 12
-        and len(source_urls) >= 6
+        and len(source_sites) >= 6
         and len(criteria_covered) >= 9
         and primary_count >= 3
-        and len(verified_source_urls) >= 3
+        and len(verified_source_sites) >= 3
         and not contradictions
     ):
         evidence_confidence = "high"
@@ -535,7 +613,9 @@ def audit_evidence(
             "rejected_findings": len(rejected),
             "duplicate_findings": len(duplicates),
             "unique_sources": len(source_urls),
+            "unique_source_hosts": len(source_sites),
             "verified_sources": len(verified_source_urls),
+            "verified_source_hosts": len(verified_source_sites),
             "verified_findings": sum(1 for item in valid if item["source_verified"]),
             "primary_findings": primary_count,
             "dimensions_covered": dimensions_covered,
@@ -545,8 +625,14 @@ def audit_evidence(
         },
         "source_integrity": {
             "verified_source_urls": verified_source_urls,
+            "verified_source_sites": verified_source_sites,
             "unverified_source_urls": unverified_source_urls,
+            "unique_source_sites": source_sites,
             "snapshot_requirement_for_badge": 2,
+            "verification_rule": (
+                "Only snapshots carrying a valid Humanity Score Ed25519 attestation "
+                "from the current deployment count as independently retrieved."
+            ),
         },
         "contradictions": contradictions,
         "duplicate_evidence": duplicates,
@@ -572,8 +658,9 @@ def audit_evidence(
                 "An overall score is withheld until evidence covers all three dimensions and at least six criteria."
             ),
             (
-                "A source URL alone is not treated as independently verified. Badge eligibility in rubric 3.0 "
-                "requires snapshot hashes and retrieval timestamps for at least two unique sources."
+                "A source URL or caller-supplied hash alone is not treated as independently verified. "
+                "Badge eligibility requires valid Humanity Score Ed25519 snapshot attestations "
+                "for at least two distinct source sites; subdomains of the same site do not count separately."
             ),
             (
                 "A source snapshot hash proves the bytes retrieved by the audit process; without an external "

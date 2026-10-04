@@ -4,16 +4,27 @@
 
 Humanity Score asks: **before a buyer, founder, procurement team, or investor trusts an AI product, what does the documented evidence actually support about Human Agency, Value Distribution, and Human Connection?**
 
-**Product version:** 3.1.1  
-**Current rubric:** 3.0.0  
+**Product version:** 3.2.0  
+**Current rubric:** 3.1.0  
 **Founder Audit:** $499 one-time — [Book the audit](https://book.stripe.com/eVq3cu0N71pucyIf8Eao80b)  
 **MCPMarket tool price:** $19
 
 > Humanity Score is a product-impact and due-diligence framework. It is not legal advice, regulatory approval, safety certification, compliance certification, or government certification.
 
-## What changed in 3.1
+## What changed in 3.2
 
-Rubric 3.0 hardens the evidence model:
+Rubric 3.1 hardens the production trust boundary:
+
+- **Caller-supplied hashes no longer count as verified evidence.** Badge verification requires a valid Humanity Score Ed25519 snapshot attestation.
+- **Source snapshots are DNS-pinned.** The fetcher resolves and validates a public IP, then connects to that exact IP; redirects are revalidated.
+- **Strong defaults were removed.** `source_type` and `confidence` are required rather than defaulting to primary/1.0.
+- **Source-site inflation is reduced.** Multiple subdomains of the same site do not count as independent badge sources.
+- **Receipts and appeals are signed when a signing key is configured.** Public receipts include a server issuance timestamp.
+- **Direct Vercel MCP is fail-closed.** Set `HUMANITY_SCORE_API_KEY` before exposing `/mcp`; per-minute rate limiting is included.
+- **Runtime dependencies are pinned.** CI and managed-host builds use exact tested versions.
+- **Public receipt consistency is tested in CI.** Markdown metadata must match canonical JSON.
+
+The previous rubric-3 protections remain:
 
 - **Unknown is not neutral.** Criteria without accepted evidence are reported as `UNKNOWN`; they are not silently scored 50.
 - **Overall scores can be withheld.** An audit stays `UNSCORED` until evidence covers all 3 dimensions and at least 6 distinct criteria.
@@ -96,7 +107,7 @@ A finding can include:
 }
 ```
 
-The snapshot fields are optional for accepting a finding, but are required in aggregate for an `EVIDENCE-BACKED` badge under rubric 3.0.
+Snapshot metadata is optional for accepting a finding. For an `EVIDENCE-BACKED` badge, however, snapshot metadata only counts when it carries a valid Humanity Score Ed25519 attestation produced by `snapshot_source`.
 
 ## Badge and scoring gates
 
@@ -108,9 +119,9 @@ An overall score is produced only after evidence covers:
 Badge eligibility additionally requires:
 
 - at least 6 accepted findings;
-- at least 3 unique source URLs;
+- at least 3 distinct source sites;
 - at least 2 primary-source findings;
-- at least 2 unique source URLs with snapshot hash + retrieval timestamp.
+- at least 2 distinct source sites with valid Humanity Score signed snapshot attestations.
 
 Until those gates pass, the audit is `PROVISIONAL` or `UNSCORED`.
 
@@ -155,10 +166,11 @@ Safely retrieves a **public** evidence URL and returns:
 - content type
 - byte length
 - bounded text excerpt
+- signed snapshot attestation fields that can be copied directly into an evidence item
 
-The fetcher rejects localhost/private/reserved network destinations and enforces redirect and response-size limits.
+The fetcher rejects localhost/private/reserved network destinations, pins the validated public IP for the connection, revalidates redirects, and enforces redirect/response-size limits.
 
-A snapshot hash proves what bytes were retrieved by the tool. It does **not** independently prove when those bytes first existed; use a trusted timestamp or archival service when independent proof of time is required.
+A valid Humanity Score attestation proves that the configured Humanity Score deployment retrieved the represented bytes and metadata. It does **not** independently prove when those bytes first existed; use a trusted external timestamp or archival service when independent proof of time is required.
 
 ### `decision_brief`
 Adds prioritized actions, buyer questions, review signals, monitoring triggers, unknown criteria, contradictions, and source-integrity context.
@@ -167,7 +179,7 @@ Adds prioritized actions, buyer questions, review signals, monitoring triggers, 
 Compares two evidence snapshots and reports score/coverage/evidence changes.
 
 ### `create_audit_receipt`
-Produces a shareable deterministic receipt with source-integrity metadata.
+Produces a shareable receipt with source-integrity metadata, a server issuance timestamp, and an Ed25519 signature when signing is configured.
 
 ### `compare_reviews`
 Compares two independent reviewer coding passes. It reports coverage disagreements, impact differences, confidence differences, and an exact agreement rate. Disagreements are not silently averaged.
@@ -251,3 +263,12 @@ python -m py_compile core.py server.py audit_receipt.py intelligence.py provenan
 ## License
 
 MIT © 2026 Oluwafemi Idiakhoa
+
+
+## Production configuration
+
+For production badge issuance, configure a stable 32-byte Ed25519 private key in `HUMANITY_SCORE_SIGNING_KEY` (64 hex characters or base64url). Keep this key secret and stable across deployments.
+
+For the direct Vercel HTTP MCP endpoint, also configure `HUMANITY_SCORE_API_KEY`. Requests to `/mcp` fail closed when this variable is absent. Optional rate controls are `HUMANITY_SCORE_RATE_LIMIT_PER_MINUTE` and `HUMANITY_SCORE_SNAPSHOT_RATE_LIMIT_PER_MINUTE`.
+
+MCPMarket's managed stdio deployment does not require the HTTP API key, but it **does** need `HUMANITY_SCORE_SIGNING_KEY` if you want evidence-backed badge eligibility.

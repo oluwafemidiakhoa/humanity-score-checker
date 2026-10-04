@@ -8,21 +8,38 @@ from __future__ import annotations
 
 import argparse
 import os
+import time
+from collections import deque
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
 from audit_receipt import build_public_receipt, receipt_html, receipt_markdown
-from core import audit_evidence, score_self_reported, share_thread, unverified_badge
+from core import PRODUCT_VERSION, RUBRIC_VERSION, audit_evidence, score_self_reported, share_thread, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
 from governance import build_procurement_packet, evidence_request_checklist
-from provenance import retrieve_source_snapshot
+from provenance import retrieve_source_snapshot, sign_document, signing_metadata
 from review import compare_reviewer_evidence, create_appeal_record
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 
-PRODUCT_VERSION = "3.1.1"
+_SNAPSHOT_CALLS: deque[float] = deque()
+
+
+def _enforce_snapshot_rate_limit() -> None:
+    try:
+        limit = int(os.getenv("HUMANITY_SCORE_SNAPSHOT_RATE_LIMIT_PER_MINUTE", "30"))
+    except ValueError:
+        limit = 30
+    limit = max(1, min(limit, 300))
+    now = time.monotonic()
+    while _SNAPSHOT_CALLS and now - _SNAPSHOT_CALLS[0] >= 60:
+        _SNAPSHOT_CALLS.popleft()
+    if len(_SNAPSHOT_CALLS) >= limit:
+        raise ValueError("snapshot_source rate limit exceeded; retry later")
+    _SNAPSHOT_CALLS.append(now)
+
 
 mcp = FastMCP(
     "humanity-score-checker",
@@ -39,8 +56,9 @@ def version_info() -> dict[str, Any]:
     return {
         "service": "humanity-score-checker",
         "product_version": PRODUCT_VERSION,
-        "rubric_version": "3.0.0",
+        "rubric_version": RUBRIC_VERSION,
         "tool_count_expected": 13,
+        "provenance_signing": signing_metadata(),
     }
 
 
@@ -82,8 +100,10 @@ def create_audit_receipt(
         human_story=human_story,
     )
     receipt = build_public_receipt(audit, audit_date=audit_date)
+    receipt_signature = sign_document(receipt, purpose="audit_receipt")
     return {
         "receipt": receipt,
+        "receipt_signature": receipt_signature,
         "markdown": receipt_markdown(receipt),
         "html": receipt_html(receipt),
     }
@@ -150,6 +170,7 @@ def snapshot_source(url: str) -> dict[str, Any]:
     This tool rejects private/local network destinations and returns a SHA-256
     hash plus retrieval timestamp for evidence provenance.
     """
+    _enforce_snapshot_rate_limit()
     return retrieve_source_snapshot(url)
 
 
@@ -172,7 +193,7 @@ def create_appeal(
     requested_correction: str,
 ) -> dict[str, Any]:
     """Create a deterministic correction/appeal intake record."""
-    return create_appeal_record(
+    appeal = create_appeal_record(
         product_name=product_name,
         report_hash=report_hash,
         appellant=appellant,
@@ -180,6 +201,10 @@ def create_appeal(
         evidence_urls=evidence_urls,
         requested_correction=requested_correction,
     )
+    return {
+        "appeal": appeal,
+        "appeal_signature": sign_document(appeal, purpose="appeal_record"),
+    }
 
 
 @mcp.tool()

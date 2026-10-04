@@ -18,9 +18,10 @@ class PublicReceiptTests(unittest.TestCase):
 
     def test_receipt_contains_verification_fields(self):
         receipt = build_public_receipt(self.audit, audit_date="2026-10-01")
-        self.assertEqual(receipt["schema"], "humanity-score.public-audit-receipt.v2")
+        self.assertEqual(receipt["schema"], "humanity-score.public-audit-receipt.v3")
         self.assertEqual(receipt["report_hash"], self.audit["report_hash"])
         self.assertEqual(receipt["audit_date"], "2026-10-01")
+        self.assertTrue(receipt["issued_at"].endswith("Z"))
         self.assertEqual(len(receipt["accepted_evidence"]), 6)
         self.assertIn("source_integrity", receipt)
         self.assertIn("unknown_criteria", receipt["result"])

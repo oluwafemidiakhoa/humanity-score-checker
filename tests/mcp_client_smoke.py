@@ -10,6 +10,7 @@ from mcp.client.streamable_http import streamablehttp_client
 
 
 EXPECTED_TOOLS = {
+    "version_info",
     "audit_product",
     "score_product",
     "generate_badge",

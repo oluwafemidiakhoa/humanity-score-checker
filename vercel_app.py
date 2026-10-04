@@ -1,19 +1,23 @@
 """Vercel ASGI entrypoint for the Humanity Score MCP server.
 
-Vercel imports the module-level app object defined here. The MCP endpoint
-remains available at /mcp; lightweight health routes make deployment checks
-and browser verification straightforward.
+The direct HTTP MCP endpoint is fail-closed: set HUMANITY_SCORE_API_KEY in
+Vercel before using /mcp. MCPMarket's managed stdio deployment is unaffected.
 """
 
 from __future__ import annotations
 
 import os
+import time
+from collections import defaultdict, deque
 
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
+from core import PRODUCT_VERSION, RUBRIC_VERSION
+from provenance import signing_metadata
 from server import mcp
 
 
@@ -55,19 +59,22 @@ def _transport_security() -> TransportSecuritySettings:
             allowed_origins=allowed_origins,
         )
 
-    # Vercel is the TLS-terminating reverse proxy and controls the public Host
-    # header. If its system hostname variables are unavailable, disabling the
-    # SDK's localhost-oriented rebinding check is the correct proxy setup.
     return TransportSecuritySettings(enable_dns_rebinding_protection=False)
 
 
 async def health(_: Request) -> JSONResponse:
+    signing = signing_metadata()
+    api_key_configured = bool(os.getenv("HUMANITY_SCORE_API_KEY", "").strip())
     return JSONResponse(
         {
             "ok": True,
             "service": "humanity-score-checker",
-            "product_version": "3.1.1",
+            "product_version": PRODUCT_VERSION,
+            "rubric_version": RUBRIC_VERSION,
             "mcp_endpoint": "/mcp",
+            "http_auth_configured": api_key_configured,
+            "provenance_signing_configured": bool(signing.get("configured")),
+            "production_ready": api_key_configured and bool(signing.get("configured")),
         }
     )
 
@@ -76,3 +83,54 @@ mcp.settings.transport_security = _transport_security()
 app = mcp.streamable_http_app()
 app.router.routes.append(Route("/", endpoint=health, methods=["GET"]))
 app.router.routes.append(Route("/healthz", endpoint=health, methods=["GET"]))
+
+_REQUESTS: dict[str, deque[float]] = defaultdict(deque)
+
+
+async def protect_mcp(request: Request, call_next):
+    if not request.url.path.startswith("/mcp"):
+        return await call_next(request)
+
+    expected = os.getenv("HUMANITY_SCORE_API_KEY", "").strip()
+    if not expected:
+        return JSONResponse(
+            {
+                "error": "http_mcp_not_configured",
+                "message": "Set HUMANITY_SCORE_API_KEY before exposing the direct HTTP MCP endpoint.",
+            },
+            status_code=503,
+        )
+
+    supplied = request.headers.get("authorization", "")
+    if supplied.lower().startswith("bearer "):
+        supplied = supplied[7:].strip()
+    else:
+        supplied = request.headers.get("x-api-key", "").strip()
+
+    import hmac
+    if not supplied or not hmac.compare_digest(supplied, expected):
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+
+    try:
+        limit = int(os.getenv("HUMANITY_SCORE_RATE_LIMIT_PER_MINUTE", "60"))
+    except ValueError:
+        limit = 60
+    limit = max(1, min(limit, 600))
+
+    now = time.monotonic()
+    key = supplied
+    bucket = _REQUESTS[key]
+    while bucket and now - bucket[0] >= 60:
+        bucket.popleft()
+    if len(bucket) >= limit:
+        return JSONResponse(
+            {"error": "rate_limited", "retry_after_seconds": 60},
+            status_code=429,
+            headers={"Retry-After": "60"},
+        )
+    bucket.append(now)
+
+    return await call_next(request)
+
+
+app.add_middleware(BaseHTTPMiddleware, dispatch=protect_mcp)

@@ -2,18 +2,20 @@
 
 **Status:** PRELIMINARY public audit  
 **Audit date:** 2026-10-02  
-**Humanity Score:** **67/100**  
-**Band:** **YELLOW · EVIDENCE-BACKED**  
+**Humanity Score:** **71/100**  
+**Band:** **GREEN · EVIDENCE-BACKED**  
 **Evidence confidence:** high  
 **Rubric version:** 2.0.0  
-**Report hash:** `e232af9403bb965a9ac8e2a588e1fa8619d008a34ad6a38a91d4b76c63696bda`
+**Report hash:** `b89e32349743f4221feb397472fbed6f067cece75c29cc0bfdd558dfcf15645d`
 
 > This preliminary audit was prepared from publicly available Lindy primary-source documentation. Lindy has not yet been asked to verify the factual interpretation.
+
+> **Metadata correction (2026-10-04):** This Markdown view was corrected to match the canonical `preliminary.json` receipt. The underlying evidence record and JSON report hash were not re-scored or silently upgraded.
 
 ## Dimension scores
 
 - Agency: **74/100**
-- Value Distribution: **64/100**
+- Value Distribution: **74/100**
 - Human Connection: **64/100**
 
 Unassessed criteria remain at the rubric's neutral baseline of 50. A neutral score is not a negative finding.

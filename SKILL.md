@@ -1,9 +1,9 @@
 ---
 name: humanity-score-checker
 display_name: Humanity Score Checker — Evidence-Backed Human Impact Rating for AI
-version: 3.1.1
+version: 3.2.0
 author: oluwafemidiakhoa
-description: Independent AI product due diligence across Agency, Value Distribution, and Human Connection, with explicit unknowns, source snapshots, duplicate/contradiction checks, reviewer calibration, and reproducible receipts.
+description: Independent AI product due diligence across Agency, Value Distribution, and Human Connection, with explicit unknowns, signed source snapshots, duplicate/contradiction checks, reviewer calibration, and signed receipts.
 price: 19
 category: "analytics & monitoring"
 tags: [humanity-score, ai-ethics, product-audit, agency, evidence, transparency]
@@ -62,11 +62,11 @@ Use this for a source-gated audit.
 An audit is badge eligible only when it has at least:
 
 - 6 accepted findings
-- 3 unique source URLs
+- 3 distinct source sites
 - coverage across all 3 dimensions
 - 6 distinct rubric criteria
 - 2 primary-source findings
-- 2 unique source URLs with independently retrieved snapshot hashes and retrieval timestamps
+- 2 distinct source sites carrying valid Humanity Score Ed25519 snapshot attestations
 
 Badge colors:
 
@@ -111,7 +111,7 @@ A covered criterion starts at 50 and evidence shifts only that criterion. An unc
 ## Additional tools
 
 - `version_info`: verifies the deployed release and expected tool count.
-- `snapshot_source`: safely retrieves a public source and returns SHA-256 + retrieval metadata.
+- `snapshot_source`: safely retrieves a public source through a DNS-pinned fetcher and returns SHA-256 + signed retrieval metadata.
 - `decision_brief`: turns an audit into prioritized buyer/founder actions and questions.
 - `monitor_product_change`: compares evidence snapshots over time.
 - `create_audit_receipt`: creates a deterministic public receipt.
@@ -122,8 +122,8 @@ A covered criterion starts at 50 and evidence shifts only that criterion. An unc
 
 ## Important limitation
 
-A source snapshot hash proves the bytes retrieved by Humanity Score, but without an external trusted timestamp/archive it does not independently prove when those bytes first existed. Humanity Score is a product-impact and due-diligence framework, not regulatory, legal, safety, compliance, or third-party certification.
+A valid Humanity Score snapshot attestation proves that the configured deployment retrieved the represented bytes and metadata. It does not independently prove when those bytes first existed without an external trusted timestamp/archive. Humanity Score is a product-impact and due-diligence framework, not regulatory, legal, safety, compliance, or third-party certification.
 
 ## Release verification
 
-For MCPMarket or any managed host, call `version_info`. Humanity Score 3.1.1 should report `tool_count_expected: 13`. If a host still exposes only the original four tools, it is serving a stale deployment and should be replaced with a fresh deployment from the current GitHub `main` branch.
+For MCPMarket or any managed host, call `version_info`. Humanity Score 3.2.0 should report `tool_count_expected: 13` and show production provenance signing as configured before evidence-backed badge issuance. If a host still exposes only the original four tools, it is serving a stale deployment and should be replaced with a fresh deployment from the current GitHub `main` branch.
