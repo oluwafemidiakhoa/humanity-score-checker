@@ -17,10 +17,10 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
-from provenance import verify_snapshot_attestation
+from provenance import verify_claim_review_attestation, verify_snapshot_attestation
 
-PRODUCT_VERSION = "3.2.0"
-RUBRIC_VERSION = "3.1.0"
+PRODUCT_VERSION = "3.3.0"
+RUBRIC_VERSION = "3.2.0"
 
 MAX_PRODUCT_NAME_CHARS = 200
 MAX_DESCRIPTION_CHARS = 10_000
@@ -228,6 +228,11 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
     source_snapshot_content_type = str(item.get("source_snapshot_content_type", "")).strip()
     source_snapshot_signature = str(item.get("source_snapshot_signature", "")).strip()
     source_snapshot_key_id = str(item.get("source_snapshot_key_id", "")).strip()
+    claim_review_status = str(item.get("claim_review_status", "")).strip().lower()
+    claim_review_reviewer_id = str(item.get("claim_review_reviewer_id", "")).strip()
+    claim_reviewed_at = str(item.get("claim_reviewed_at", "")).strip()
+    claim_review_signature = str(item.get("claim_review_signature", "")).strip()
+    claim_review_key_id = str(item.get("claim_review_key_id", "")).strip()
     try:
         source_snapshot_bytes = int(item.get("source_snapshot_bytes", 0) or 0)
     except (TypeError, ValueError):
@@ -294,6 +299,30 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
 
     resolved_claim_id = claim_id or _claim_fingerprint(dimension, criterion, finding)
 
+    claim_review_verified = verify_claim_review_attestation(
+        {
+            "dimension": dimension,
+            "criterion": criterion,
+            "finding": finding,
+            "source": source,
+            "source_type": source_type,
+            "impact": impact,
+            "confidence": confidence,
+            "claim_id": resolved_claim_id,
+            "source_snapshot_sha256": source_snapshot_sha256,
+            "source_retrieved_at": source_retrieved_at,
+            "source_snapshot_content_type": source_snapshot_content_type,
+            "source_snapshot_bytes": source_snapshot_bytes,
+            "source_snapshot_signature": source_snapshot_signature,
+            "source_snapshot_key_id": source_snapshot_key_id,
+            "claim_review_status": claim_review_status,
+            "claim_review_reviewer_id": claim_review_reviewer_id,
+            "claim_reviewed_at": claim_reviewed_at,
+            "claim_review_signature": claim_review_signature,
+            "claim_review_key_id": claim_review_key_id,
+        }
+    )
+
     return {
         "dimension": dimension,
         "criterion": criterion,
@@ -313,6 +342,12 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
         "source_snapshot_signature": source_snapshot_signature,
         "source_snapshot_key_id": source_snapshot_key_id,
         "source_verified": source_verified,
+        "claim_review_status": claim_review_status,
+        "claim_review_reviewer_id": claim_review_reviewer_id,
+        "claim_reviewed_at": claim_reviewed_at,
+        "claim_review_signature": claim_review_signature,
+        "claim_review_key_id": claim_review_key_id,
+        "claim_review_verified": claim_review_verified,
     }, None
 
 
@@ -522,6 +557,13 @@ def audit_evidence(
     dimensions_covered = sorted({item["dimension"] for item in valid})
     criteria_covered = sorted({f'{item["dimension"]}.{item["criterion"]}' for item in valid})
     primary_count = sum(1 for item in valid if item["source_type"] == "primary")
+    reviewed_claims = [item for item in valid if item.get("claim_review_verified")]
+    reviewed_criteria = sorted(
+        {f'{item["dimension"]}.{item["criterion"]}' for item in reviewed_claims}
+    )
+    reviewed_source_sites = sorted(
+        {source_site(item["source"]) for item in reviewed_claims if source_site(item["source"])}
+    )
 
     coverage_gate = len(dimensions_covered) == 3 and len(criteria_covered) >= 6
     if coverage_gate:
@@ -532,12 +574,16 @@ def audit_evidence(
 
     badge_eligible = (
         overall is not None
-        and len(valid) >= 6
-        and len(source_sites) >= 3
+        and len(valid) >= 12
+        and len(source_sites) >= 6
         and len(dimensions_covered) == 3
-        and len(criteria_covered) >= 6
-        and primary_count >= 2
-        and len(verified_source_sites) >= 2
+        and len(criteria_covered) == 12
+        and primary_count >= 3
+        and len(verified_source_sites) >= 3
+        and len(reviewed_claims) >= 12
+        and len(reviewed_criteria) == 12
+        and len(reviewed_source_sites) >= 3
+        and not contradictions
     )
 
     if (
@@ -617,6 +663,8 @@ def audit_evidence(
             "verified_sources": len(verified_source_urls),
             "verified_source_hosts": len(verified_source_sites),
             "verified_findings": sum(1 for item in valid if item["source_verified"]),
+            "claim_reviewed_findings": len(reviewed_claims),
+            "claim_reviewed_criteria": len(reviewed_criteria),
             "primary_findings": primary_count,
             "dimensions_covered": dimensions_covered,
             "criteria_covered": len(criteria_covered),
@@ -628,10 +676,12 @@ def audit_evidence(
             "verified_source_sites": verified_source_sites,
             "unverified_source_urls": unverified_source_urls,
             "unique_source_sites": source_sites,
-            "snapshot_requirement_for_badge": 2,
+            "snapshot_requirement_for_badge": 3,
+            "claim_review_requirement_for_badge": 12,
             "verification_rule": (
-                "Only snapshots carrying a valid Humanity Score Ed25519 attestation "
-                "from the current deployment count as independently retrieved."
+                "Only snapshots carrying a valid Humanity Score Ed25519 attestation count as "
+                "independently retrieved, and EVIDENCE-BACKED badge eligibility additionally "
+                "requires signed Humanity Score claim-review attestations covering all 12 criteria."
             ),
         },
         "contradictions": contradictions,
@@ -660,7 +710,12 @@ def audit_evidence(
             (
                 "A source URL or caller-supplied hash alone is not treated as independently verified. "
                 "Badge eligibility requires valid Humanity Score Ed25519 snapshot attestations "
-                "for at least two distinct source sites; subdomains of the same site do not count separately."
+                "for at least three distinct source sites; subdomains of the same site do not count separately."
+            ),
+            (
+                "A signed snapshot proves retrieval, not semantic support. EVIDENCE-BACKED badge "
+                "eligibility therefore also requires signed Humanity Score claim-review attestations "
+                "covering all 12 rubric criteria."
             ),
             (
                 "A source snapshot hash proves the bytes retrieved by the audit process; without an external "
