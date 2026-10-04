@@ -74,7 +74,14 @@ async def health(_: Request) -> JSONResponse:
             "mcp_endpoint": "/mcp",
             "http_auth_configured": api_key_configured,
             "provenance_signing_configured": bool(signing.get("configured")),
-            "production_ready": api_key_configured and bool(signing.get("configured")),
+            "rate_limit_scope": "process_local_only",
+            "production_ready_for_private_or_low_volume_http": (
+                api_key_configured and bool(signing.get("configured"))
+            ),
+            "production_note": (
+                "Use platform-level/global rate limiting before exposing this HTTP endpoint "
+                "to high-volume public traffic."
+            ),
         }
     )
 

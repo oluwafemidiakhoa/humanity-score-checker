@@ -32,6 +32,9 @@ DEFAULT_TIMEOUT_SECONDS = 10
 MAX_URL_CHARS = 2048
 USER_AGENT = "HumanityScore/3.2 (+https://github.com/oluwafemidiakhoa/humanity-score-checker)"
 SIGNING_KEY_ENV = "HUMANITY_SCORE_SIGNING_KEY"
+TRUSTED_KEYS_ENV = "HUMANITY_SCORE_TRUSTED_PUBLIC_KEYS_JSON"
+REVIEW_SIGNING_KEY_ENV = "HUMANITY_SCORE_REVIEW_SIGNING_KEY"
+TRUSTED_REVIEW_KEYS_ENV = "HUMANITY_SCORE_TRUSTED_REVIEW_PUBLIC_KEYS_JSON"
 
 
 def _b64url_encode(value: bytes) -> str:
@@ -47,8 +50,8 @@ def _canonical_json(payload: dict[str, Any]) -> bytes:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
 
 
-def _load_private_key() -> Ed25519PrivateKey | None:
-    raw = os.getenv(SIGNING_KEY_ENV, "").strip()
+def _load_private_key_from_env(env_name: str) -> Ed25519PrivateKey | None:
+    raw = os.getenv(env_name, "").strip()
     if not raw:
         return None
 
@@ -58,22 +61,101 @@ def _load_private_key() -> Ed25519PrivateKey | None:
         else:
             key_bytes = _b64url_decode(raw)
     except Exception as exc:
-        raise ValueError(f"{SIGNING_KEY_ENV} is not valid hex/base64url") from exc
+        raise ValueError(f"{env_name} is not valid hex/base64url") from exc
 
     if len(key_bytes) != 32:
-        raise ValueError(f"{SIGNING_KEY_ENV} must encode exactly 32 raw Ed25519 private-key bytes")
+        raise ValueError(f"{env_name} must encode exactly 32 raw Ed25519 private-key bytes")
     return Ed25519PrivateKey.from_private_bytes(key_bytes)
 
 
+def _load_private_key() -> Ed25519PrivateKey | None:
+    return _load_private_key_from_env(SIGNING_KEY_ENV)
+
+
+def _load_review_private_key() -> Ed25519PrivateKey | None:
+    return _load_private_key_from_env(REVIEW_SIGNING_KEY_ENV)
+
+
+def _trusted_public_key_bytes_from_env(env_name: str) -> dict[str, bytes]:
+    """Load historical trusted public keys for verification after key rotation."""
+    trusted: dict[str, bytes] = {}
+    raw = os.getenv(env_name, "").strip()
+    if not raw:
+        return trusted
+
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{env_name} must be a JSON object") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"{env_name} must be a JSON object")
+
+    for declared_key_id, encoded in payload.items():
+        if not isinstance(declared_key_id, str) or not isinstance(encoded, str):
+            raise ValueError(f"{env_name} keys and values must be strings")
+        try:
+            public_bytes = _b64url_decode(encoded.strip())
+        except Exception as exc:
+            raise ValueError(f"invalid trusted public key for {declared_key_id}") from exc
+        if len(public_bytes) != 32:
+            raise ValueError(f"trusted public key {declared_key_id} must be 32 raw Ed25519 bytes")
+        calculated = hashlib.sha256(public_bytes).hexdigest()[:16]
+        if calculated != declared_key_id:
+            raise ValueError(
+                f"trusted public key id mismatch for {declared_key_id}; expected {calculated}"
+            )
+        trusted[declared_key_id] = public_bytes
+    return trusted
+
+
+def _trusted_public_key_bytes() -> dict[str, bytes]:
+    return _trusted_public_key_bytes_from_env(TRUSTED_KEYS_ENV)
+
+
+def _trusted_review_public_key_bytes() -> dict[str, bytes]:
+    return _trusted_public_key_bytes_from_env(TRUSTED_REVIEW_KEYS_ENV)
+
+
+def _verification_key_bytes() -> dict[str, bytes]:
+    trusted = _trusted_public_key_bytes()
+    private_key = _load_private_key()
+    if private_key is not None:
+        current = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        trusted[hashlib.sha256(current).hexdigest()[:16]] = current
+    return trusted
+
+
+def _review_verification_key_bytes() -> dict[str, bytes]:
+    trusted = _trusted_review_public_key_bytes()
+    private_key = _load_review_private_key()
+    if private_key is not None:
+        current = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        trusted[hashlib.sha256(current).hexdigest()[:16]] = current
+    return trusted
+
+
 def signing_metadata() -> dict[str, Any]:
-    """Return non-secret signing metadata without exposing the private key."""
+    """Return non-secret signing metadata without exposing private key material."""
     try:
         private_key = _load_private_key()
+        trusted = _verification_key_bytes()
     except ValueError as exc:
         return {"configured": False, "valid": False, "error": str(exc)}
 
     if private_key is None:
-        return {"configured": False, "valid": True, "key_id": None, "public_key": None}
+        return {
+            "configured": False,
+            "valid": True,
+            "key_id": None,
+            "public_key": None,
+            "trusted_key_ids": sorted(trusted),
+        }
 
     public_bytes = private_key.public_key().public_bytes(
         encoding=serialization.Encoding.Raw,
@@ -85,6 +167,39 @@ def signing_metadata() -> dict[str, Any]:
         "valid": True,
         "key_id": key_id,
         "public_key": _b64url_encode(public_bytes),
+        "trusted_key_ids": sorted(trusted),
+        "algorithm": "Ed25519",
+    }
+
+
+def review_signing_metadata() -> dict[str, Any]:
+    """Return non-secret metadata for the separate human-review signing key."""
+    try:
+        private_key = _load_review_private_key()
+        trusted = _review_verification_key_bytes()
+    except ValueError as exc:
+        return {"configured": False, "valid": False, "error": str(exc)}
+
+    if private_key is None:
+        return {
+            "configured": False,
+            "valid": True,
+            "key_id": None,
+            "public_key": None,
+            "trusted_key_ids": sorted(trusted),
+        }
+
+    public_bytes = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
+    key_id = hashlib.sha256(public_bytes).hexdigest()[:16]
+    return {
+        "configured": True,
+        "valid": True,
+        "key_id": key_id,
+        "public_key": _b64url_encode(public_bytes),
+        "trusted_key_ids": sorted(trusted),
         "algorithm": "Ed25519",
     }
 
@@ -124,25 +239,147 @@ def verify_document_signature(
     signature: str,
     signing_key_id: str,
 ) -> bool:
-    """Verify a signature against the service's currently configured public key."""
+    """Verify a signature against the current or explicitly trusted historical key."""
     if not signature or not signing_key_id:
         return False
 
-    metadata = signing_metadata()
-    if not metadata.get("configured") or not metadata.get("valid"):
+    try:
+        key_bytes = _verification_key_bytes().get(signing_key_id)
+    except ValueError:
         return False
-    if signing_key_id != metadata.get("key_id"):
+    if key_bytes is None:
         return False
 
     try:
-        public_key = Ed25519PublicKey.from_public_bytes(
-            _b64url_decode(str(metadata["public_key"]))
-        )
+        public_key = Ed25519PublicKey.from_public_bytes(key_bytes)
         envelope = {"purpose": purpose, "payload": payload}
         public_key.verify(_b64url_decode(signature), _canonical_json(envelope))
     except (InvalidSignature, ValueError, TypeError):
         return False
     return True
+
+
+def sign_review_document(payload: dict[str, Any], *, purpose: str) -> dict[str, Any]:
+    """Sign a reviewer-controlled attestation with the separate review key."""
+    private_key = _load_review_private_key()
+    if private_key is None:
+        return {
+            "signature_status": "unconfigured",
+            "signature": "",
+            "signing_key_id": "",
+            "signing_public_key": "",
+            "signature_algorithm": "Ed25519",
+        }
+    public_bytes = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
+    key_id = hashlib.sha256(public_bytes).hexdigest()[:16]
+    envelope = {"purpose": purpose, "payload": payload}
+    signature = private_key.sign(_canonical_json(envelope))
+    return {
+        "signature_status": "signed",
+        "signature": _b64url_encode(signature),
+        "signing_key_id": key_id,
+        "signing_public_key": _b64url_encode(public_bytes),
+        "signature_algorithm": "Ed25519",
+    }
+
+
+def verify_review_document_signature(
+    payload: dict[str, Any],
+    *,
+    purpose: str,
+    signature: str,
+    signing_key_id: str,
+) -> bool:
+    if not signature or not signing_key_id:
+        return False
+    try:
+        key_bytes = _review_verification_key_bytes().get(signing_key_id)
+    except ValueError:
+        return False
+    if key_bytes is None:
+        return False
+    try:
+        public_key = Ed25519PublicKey.from_public_bytes(key_bytes)
+        envelope = {"purpose": purpose, "payload": payload}
+        public_key.verify(_b64url_decode(signature), _canonical_json(envelope))
+    except (InvalidSignature, ValueError, TypeError):
+        return False
+    return True
+
+
+def _claim_review_payload(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema": "humanity-score.claim-review-attestation.v1",
+        "dimension": str(item.get("dimension", "")).strip().lower(),
+        "criterion": str(item.get("criterion", "")).strip().lower(),
+        "finding": str(item.get("finding", "")).strip(),
+        "source": canonical_public_url(str(item.get("source", ""))),
+        "source_type": str(item.get("source_type", "")).strip().lower(),
+        "impact": int(item.get("impact")),
+        "confidence": float(item.get("confidence")),
+        "claim_id": str(item.get("claim_id", "")).strip(),
+        "source_snapshot_sha256": str(item.get("source_snapshot_sha256", "")).strip().lower(),
+        "source_retrieved_at": str(item.get("source_retrieved_at", "")).strip(),
+        "source_snapshot_key_id": str(item.get("source_snapshot_key_id", "")).strip(),
+        "claim_review_status": str(item.get("claim_review_status", "")).strip().lower(),
+        "claim_review_reviewer_id": str(item.get("claim_review_reviewer_id", "")).strip(),
+        "claim_reviewed_at": str(item.get("claim_reviewed_at", "")).strip(),
+    }
+
+
+def verify_claim_review_attestation(item: dict[str, Any]) -> bool:
+    """Verify that Humanity Score reviewed a claim against its signed source snapshot."""
+    if not verify_snapshot_attestation(item):
+        return False
+    if str(item.get("claim_review_status", "")).strip().lower() != "supported":
+        return False
+
+    try:
+        payload = _claim_review_payload(item)
+    except (TypeError, ValueError):
+        return False
+    if not payload["claim_id"] or not payload["claim_review_reviewer_id"] or not payload["claim_reviewed_at"]:
+        return False
+
+    return verify_review_document_signature(
+        payload,
+        purpose="evidence_claim_review",
+        signature=str(item.get("claim_review_signature", "")),
+        signing_key_id=str(item.get("claim_review_key_id", "")),
+    )
+
+
+def issue_claim_review_attestation(
+    item: dict[str, Any],
+    *,
+    reviewer_id: str,
+    reviewed_at: str,
+) -> dict[str, Any]:
+    """Internal helper for a human reviewer to attest a supported evidence claim."""
+    if not reviewer_id.strip():
+        raise ValueError("reviewer_id is required")
+    if not reviewed_at.strip():
+        raise ValueError("reviewed_at is required")
+    if not verify_snapshot_attestation(item):
+        raise ValueError("claim review requires a valid signed source snapshot")
+
+    review_fields = {
+        "claim_review_status": "supported",
+        "claim_review_reviewer_id": reviewer_id.strip(),
+        "claim_reviewed_at": reviewed_at.strip(),
+    }
+    payload = _claim_review_payload({**item, **review_fields})
+    signed = sign_review_document(payload, purpose="evidence_claim_review")
+    if signed["signature_status"] != "signed":
+        raise RuntimeError("HUMANITY_SCORE_REVIEW_SIGNING_KEY must be configured to attest a claim")
+    return {
+        **review_fields,
+        "claim_review_signature": signed["signature"],
+        "claim_review_key_id": signed["signing_key_id"],
+    }
 
 
 def canonical_public_url(url: str) -> str:
@@ -199,15 +436,8 @@ def _public_ips(hostname: str, port: int) -> list[str]:
     for result in addresses:
         raw = result[4][0]
         ip = ipaddress.ip_address(raw)
-        if (
-            ip.is_private
-            or ip.is_loopback
-            or ip.is_link_local
-            or ip.is_multicast
-            or ip.is_reserved
-            or ip.is_unspecified
-        ):
-            raise ValueError("source host resolves to a non-public network address")
+        if not ip.is_global:
+            raise ValueError("source host resolves to a non-global network address")
         text = str(ip)
         if text not in public:
             public.append(text)

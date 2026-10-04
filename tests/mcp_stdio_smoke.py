@@ -16,6 +16,7 @@ EXPECTED_TOOLS = {
     "generate_badge",
     "generate_viral_teardown",
     "create_audit_receipt",
+    "verify_receipt",
     "decision_brief",
     "monitor_product_change",
     "snapshot_source",

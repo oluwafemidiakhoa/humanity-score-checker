@@ -2,25 +2,10 @@ name: publish-container
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "Dockerfile"
-      - "server.py"
-      - "core.py"
-      - "vercel_app.py"
-      - "audit_receipt.py"
-      - "intelligence.py"
-      - "governance.py"
-      - "provenance.py"
-      - "review.py"
-      - "pyproject.toml"
-      - "requirements.lock"
-      - "README.md"
-      - "METHODOLOGY.md"
-      - "SKILL.md"
-      - ".github/workflows/publish-container.yml"
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -32,9 +17,15 @@ env:
 
 jobs:
   publish:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v3

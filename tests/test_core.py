@@ -5,7 +5,7 @@ from core import audit_evidence, score_self_reported, unverified_badge
 from intelligence import build_decision_intelligence, compare_audit_results
 from governance import build_procurement_packet, evidence_request_checklist
 from review import compare_reviewer_evidence, create_appeal_record
-from provenance import sign_document
+from provenance import issue_claim_review_attestation, sign_document
 
 
 GOOD_EVIDENCE = [
@@ -66,6 +66,159 @@ GOOD_EVIDENCE = [
 ]
 
 
+
+FULL_EVIDENCE = [
+    {
+        "dimension": "agency",
+        "criterion": "user_control",
+        "finding": "Users can disable automated actions and choose manual control at any time.",
+        "source": "https://alpha.example.org/control",
+        "source_type": "primary",
+        "impact": 2,
+        "confidence": 1.0,
+        "claim_id": "agency-user-control",
+    },
+    {
+        "dimension": "agency",
+        "criterion": "reversibility",
+        "finding": "The product documents deletion and export flows that let users reverse key actions.",
+        "source": "https://beta.example.net/reversibility",
+        "source_type": "primary",
+        "impact": 1,
+        "confidence": 0.9,
+        "claim_id": "agency-reversibility",
+    },
+    {
+        "dimension": "agency",
+        "criterion": "transparency",
+        "finding": "Product documentation describes when automation is active and how generated outputs are identified.",
+        "source": "https://gamma.example.com/transparency",
+        "source_type": "primary",
+        "impact": 1,
+        "confidence": 0.9,
+        "claim_id": "agency-transparency",
+    },
+    {
+        "dimension": "agency",
+        "criterion": "human_override",
+        "finding": "A documented approval step allows a person to stop or override consequential automated actions.",
+        "source": "https://delta.example.edu/override",
+        "source_type": "primary",
+        "impact": 2,
+        "confidence": 0.9,
+        "claim_id": "agency-human-override",
+    },
+    {
+        "dimension": "value_distribution",
+        "criterion": "user_benefit",
+        "finding": "Pricing documentation describes a fixed fee without advertising-based engagement incentives.",
+        "source": "https://epsilon.example.io/benefit",
+        "source_type": "primary",
+        "impact": 1,
+        "confidence": 0.8,
+        "claim_id": "value-user-benefit",
+    },
+    {
+        "dimension": "value_distribution",
+        "criterion": "data_rights",
+        "finding": "The privacy policy states that users can request deletion of stored personal data.",
+        "source": "https://zeta.example.dev/data-rights",
+        "source_type": "primary",
+        "impact": 1,
+        "confidence": 0.9,
+        "claim_id": "value-data-rights",
+    },
+    {
+        "dimension": "value_distribution",
+        "criterion": "lock_in",
+        "finding": "Documented export capabilities allow users to retrieve their content in a portable format.",
+        "source": "https://eta.example.app/lock-in",
+        "source_type": "secondary",
+        "impact": 1,
+        "confidence": 0.8,
+        "claim_id": "value-lock-in",
+    },
+    {
+        "dimension": "value_distribution",
+        "criterion": "incentive_alignment",
+        "finding": "Commercial terms describe customer-paid access rather than an advertising-funded engagement model.",
+        "source": "https://theta.example.tech/incentives",
+        "source_type": "secondary",
+        "impact": 1,
+        "confidence": 0.8,
+        "claim_id": "value-incentives",
+    },
+    {
+        "dimension": "human_connection",
+        "criterion": "collaboration",
+        "finding": "Shared workspaces are designed for multiple people to review and revise outputs together.",
+        "source": "https://iota.example.cloud/collaboration",
+        "source_type": "primary",
+        "impact": 1,
+        "confidence": 0.9,
+        "claim_id": "connection-collaboration",
+    },
+    {
+        "dimension": "human_connection",
+        "criterion": "substitution_risk",
+        "finding": "Product documentation positions automation as assistive and keeps final approval with a person.",
+        "source": "https://kappa.example.tools/substitution",
+        "source_type": "secondary",
+        "impact": 1,
+        "confidence": 0.8,
+        "claim_id": "connection-substitution",
+    },
+    {
+        "dimension": "human_connection",
+        "criterion": "social_wellbeing",
+        "finding": "The product provides workload controls intended to limit excessive notifications and repeated prompts.",
+        "source": "https://lambda.example.ai/wellbeing",
+        "source_type": "secondary",
+        "impact": 1,
+        "confidence": 0.7,
+        "claim_id": "connection-wellbeing",
+    },
+    {
+        "dimension": "human_connection",
+        "criterion": "accessibility",
+        "finding": "Published accessibility documentation describes keyboard navigation and assistive technology support.",
+        "source": "https://mu.example.software/accessibility",
+        "source_type": "primary",
+        "impact": 1,
+        "confidence": 0.9,
+        "claim_id": "connection-accessibility",
+    },
+]
+
+
+def signed_and_reviewed_evidence() -> list[dict]:
+    evidence = [dict(item) for item in FULL_EVIDENCE]
+    for index, item in enumerate(evidence):
+        item["source_snapshot_sha256"] = ("%064x" % (index + 1))
+        item["source_retrieved_at"] = "2026-10-04T12:00:00Z"
+        item["source_snapshot_content_type"] = "text/html"
+        item["source_snapshot_bytes"] = 1000 + index
+        snapshot_payload = {
+            "schema": "humanity-score.source-snapshot-attestation.v1",
+            "source": item["source"],
+            "source_snapshot_sha256": item["source_snapshot_sha256"],
+            "source_retrieved_at": item["source_retrieved_at"],
+            "source_snapshot_content_type": item["source_snapshot_content_type"],
+            "source_snapshot_bytes": item["source_snapshot_bytes"],
+        }
+        snapshot_signed = sign_document(snapshot_payload, purpose="source_snapshot")
+        item["source_snapshot_signature"] = snapshot_signed["signature"]
+        item["source_snapshot_key_id"] = snapshot_signed["signing_key_id"]
+        item.update(
+            issue_claim_review_attestation(
+                item,
+                reviewer_id="reviewer-independent-a",
+                reviewed_at="2026-10-04T12:05:00Z",
+            )
+        )
+    return evidence
+
+
 class HumanityScoreTests(unittest.TestCase):
     def test_self_reported_is_never_badge_eligible(self):
         result = score_self_reported(
@@ -121,27 +274,18 @@ class HumanityScoreTests(unittest.TestCase):
         self.assertFalse(result["badge_eligible"])
         self.assertEqual(result["evidence_summary"]["verified_sources"], 0)
 
-    def test_signed_snapshots_can_unlock_badge(self):
+    def test_signed_snapshots_without_claim_review_cannot_unlock_badge(self):
         previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        previous_review = os.environ.get("HUMANITY_SCORE_REVIEW_SIGNING_KEY")
         os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = "33" * 32
         try:
-            evidence = [dict(item) for item in GOOD_EVIDENCE]
-            source_hosts = [
-                "alpha.example.org",
-                "beta.example.net",
-                "gamma.example.com",
-                "delta.example.edu",
-                "epsilon.example.io",
-                "zeta.example.dev",
-            ]
+            evidence = [dict(item) for item in FULL_EVIDENCE]
             for index, item in enumerate(evidence):
-                item["source"] = f"https://{source_hosts[index]}/evidence/{index}"
-            for index in (0, 1):
-                item = evidence[index]
                 item["source_snapshot_sha256"] = ("%064x" % (index + 1))
-                item["source_retrieved_at"] = "2026-10-03T20:00:00Z"
+                item["source_retrieved_at"] = "2026-10-04T12:00:00Z"
                 item["source_snapshot_content_type"] = "text/html"
-                item["source_snapshot_bytes"] = 100 + index
+                item["source_snapshot_bytes"] = 1000 + index
                 payload = {
                     "schema": "humanity-score.source-snapshot-attestation.v1",
                     "source": item["source"],
@@ -160,13 +304,71 @@ class HumanityScoreTests(unittest.TestCase):
                 evidence=evidence,
                 product_url="https://example.com",
             )
-            self.assertTrue(result["badge_eligible"])
-            self.assertEqual(result["evidence_summary"]["verified_sources"], 2)
+            self.assertFalse(result["badge_eligible"])
+            self.assertEqual(result["evidence_summary"]["claim_reviewed_findings"], 0)
         finally:
             if previous is None:
                 os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
             else:
                 os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+            if previous_review is None:
+                os.environ.pop("HUMANITY_SCORE_REVIEW_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
+
+    def test_full_signed_human_review_can_unlock_badge(self):
+        previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        previous_review = os.environ.get("HUMANITY_SCORE_REVIEW_SIGNING_KEY")
+        os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = "33" * 32
+        try:
+            evidence = signed_and_reviewed_evidence()
+            result = audit_evidence(
+                product_name="Example",
+                description="Example product",
+                evidence=evidence,
+                product_url="https://example.com",
+            )
+            self.assertTrue(result["badge_eligible"])
+            self.assertEqual(result["evidence_summary"]["claim_reviewed_findings"], 12)
+            self.assertEqual(result["evidence_summary"]["claim_reviewed_criteria"], 12)
+        finally:
+            if previous is None:
+                os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+            if previous_review is None:
+                os.environ.pop("HUMANITY_SCORE_REVIEW_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
+
+    def test_tampered_reviewed_claim_invalidates_attestation(self):
+        previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        previous_review = os.environ.get("HUMANITY_SCORE_REVIEW_SIGNING_KEY")
+        os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = "33" * 32
+        try:
+            evidence = signed_and_reviewed_evidence()
+            evidence[0]["finding"] = (
+                "This invented favorable claim was never reviewed against the captured source content."
+            )
+            result = audit_evidence(
+                product_name="Example",
+                description="Example product",
+                evidence=evidence,
+                product_url="https://example.com",
+            )
+            self.assertFalse(result["badge_eligible"])
+            self.assertEqual(result["evidence_summary"]["claim_reviewed_findings"], 11)
+        finally:
+            if previous is None:
+                os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+            if previous_review is None:
+                os.environ.pop("HUMANITY_SCORE_REVIEW_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
 
     def test_missing_source_type_or_confidence_is_rejected(self):
         missing_source_type = dict(GOOD_EVIDENCE[0])

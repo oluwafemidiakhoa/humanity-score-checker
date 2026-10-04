@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "humanity-score-checker"
-version = "3.2.0"
+version = "3.3.0"
 description = "Evidence-backed human-impact rating and decision intelligence for AI products"
 readme = "README.md"
 requires-python = ">=3.10"
