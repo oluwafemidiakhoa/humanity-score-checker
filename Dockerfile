@@ -10,10 +10,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml README.md core.py server.py vercel_app.py audit_receipt.py intelligence.py governance.py provenance.py review.py LICENSE ./
+COPY pyproject.toml requirements.lock README.md core.py server.py vercel_app.py audit_receipt.py intelligence.py governance.py provenance.py review.py LICENSE ./
 
 RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir .
+    && python -m pip install --no-cache-dir -r requirements.lock \
+    && python -m pip install --no-cache-dir --no-deps .
 
 EXPOSE 8000
 
