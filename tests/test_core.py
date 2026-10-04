@@ -340,6 +340,34 @@ class HumanityScoreTests(unittest.TestCase):
             else:
                 os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
 
+    def test_tampered_reviewed_claim_invalidates_attestation(self):
+        previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        previous_review = os.environ.get("HUMANITY_SCORE_REVIEW_SIGNING_KEY")
+        os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = "33" * 32
+        try:
+            evidence = signed_and_reviewed_evidence()
+            evidence[0]["finding"] = (
+                "This invented favorable claim was never reviewed against the captured source content."
+            )
+            result = audit_evidence(
+                product_name="Example",
+                description="Example product",
+                evidence=evidence,
+                product_url="https://example.com",
+            )
+            self.assertFalse(result["badge_eligible"])
+            self.assertEqual(result["evidence_summary"]["claim_reviewed_findings"], 11)
+        finally:
+            if previous is None:
+                os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+            if previous_review is None:
+                os.environ.pop("HUMANITY_SCORE_REVIEW_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
+
     def test_missing_source_type_or_confidence_is_rejected(self):
         missing_source_type = dict(GOOD_EVIDENCE[0])
         missing_source_type.pop("source_type")
