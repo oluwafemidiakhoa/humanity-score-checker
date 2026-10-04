@@ -327,6 +327,9 @@ def _claim_review_payload(item: dict[str, Any]) -> dict[str, Any]:
         "claim_review_status": str(item.get("claim_review_status", "")).strip().lower(),
         "claim_review_reviewer_id": str(item.get("claim_review_reviewer_id", "")).strip(),
         "claim_reviewed_at": str(item.get("claim_reviewed_at", "")).strip(),
+        "claim_review_product_name": str(item.get("claim_review_product_name", "")).strip(),
+        "claim_review_product_url": canonical_public_url(str(item.get("claim_review_product_url", ""))),
+        "claim_support_excerpt": str(item.get("claim_support_excerpt", "")).strip(),
     }
 
 
@@ -341,7 +344,15 @@ def verify_claim_review_attestation(item: dict[str, Any]) -> bool:
         payload = _claim_review_payload(item)
     except (TypeError, ValueError):
         return False
-    if not payload["claim_id"] or not payload["claim_review_reviewer_id"] or not payload["claim_reviewed_at"]:
+    if (
+        not payload["claim_id"]
+        or not payload["claim_review_reviewer_id"]
+        or not payload["claim_reviewed_at"]
+        or not payload["claim_review_product_name"]
+        or not payload["claim_review_product_url"]
+        or len(payload["claim_support_excerpt"]) < 20
+        or len(payload["claim_support_excerpt"]) > 1000
+    ):
         return False
 
     return verify_review_document_signature(
@@ -357,12 +368,21 @@ def issue_claim_review_attestation(
     *,
     reviewer_id: str,
     reviewed_at: str,
+    product_name: str,
+    product_url: str,
+    support_excerpt: str,
 ) -> dict[str, Any]:
     """Internal helper for a human reviewer to attest a supported evidence claim."""
     if not reviewer_id.strip():
         raise ValueError("reviewer_id is required")
     if not reviewed_at.strip():
         raise ValueError("reviewed_at is required")
+    if not product_name.strip():
+        raise ValueError("product_name is required")
+    canonical_product_url = canonical_public_url(product_url)
+    normalized_excerpt = support_excerpt.strip()
+    if len(normalized_excerpt) < 20 or len(normalized_excerpt) > 1000:
+        raise ValueError("support_excerpt must contain 20 to 1000 characters")
     if not verify_snapshot_attestation(item):
         raise ValueError("claim review requires a valid signed source snapshot")
 
@@ -370,6 +390,9 @@ def issue_claim_review_attestation(
         "claim_review_status": "supported",
         "claim_review_reviewer_id": reviewer_id.strip(),
         "claim_reviewed_at": reviewed_at.strip(),
+        "claim_review_product_name": product_name.strip(),
+        "claim_review_product_url": canonical_product_url,
+        "claim_support_excerpt": normalized_excerpt,
     }
     payload = _claim_review_payload({**item, **review_fields})
     signed = sign_review_document(payload, purpose="evidence_claim_review")
