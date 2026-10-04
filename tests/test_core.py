@@ -214,6 +214,9 @@ def signed_and_reviewed_evidence() -> list[dict]:
                 item,
                 reviewer_id="reviewer-independent-a",
                 reviewed_at="2026-10-04T12:05:00Z",
+                product_name="Example",
+                product_url="https://example.com",
+                support_excerpt=item["finding"],
             )
         )
     return evidence
@@ -360,6 +363,31 @@ class HumanityScoreTests(unittest.TestCase):
             )
             self.assertFalse(result["badge_eligible"])
             self.assertEqual(result["evidence_summary"]["claim_reviewed_findings"], 11)
+        finally:
+            if previous is None:
+                os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_SIGNING_KEY"] = previous
+            if previous_review is None:
+                os.environ.pop("HUMANITY_SCORE_REVIEW_SIGNING_KEY", None)
+            else:
+                os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = previous_review
+
+    def test_review_attestation_cannot_be_replayed_for_another_product(self):
+        previous = os.environ.get("HUMANITY_SCORE_SIGNING_KEY")
+        previous_review = os.environ.get("HUMANITY_SCORE_REVIEW_SIGNING_KEY")
+        os.environ["HUMANITY_SCORE_SIGNING_KEY"] = "11" * 32
+        os.environ["HUMANITY_SCORE_REVIEW_SIGNING_KEY"] = "33" * 32
+        try:
+            evidence = signed_and_reviewed_evidence()
+            result = audit_evidence(
+                product_name="Different Product",
+                description="Another product reusing someone else's reviewed evidence.",
+                evidence=evidence,
+                product_url="https://different.example.com",
+            )
+            self.assertFalse(result["badge_eligible"])
+            self.assertEqual(result["evidence_summary"]["claim_reviewed_findings"], 0)
         finally:
             if previous is None:
                 os.environ.pop("HUMANITY_SCORE_SIGNING_KEY", None)
