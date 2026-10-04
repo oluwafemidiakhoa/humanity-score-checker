@@ -19,8 +19,8 @@ from urllib.parse import urlparse, urlunparse
 
 from provenance import verify_claim_review_attestation, verify_snapshot_attestation
 
-PRODUCT_VERSION = "3.3.0"
-RUBRIC_VERSION = "3.2.0"
+PRODUCT_VERSION = "3.3.1"
+RUBRIC_VERSION = "3.2.1"
 
 MAX_PRODUCT_NAME_CHARS = 200
 MAX_DESCRIPTION_CHARS = 10_000
@@ -231,6 +231,9 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
     claim_review_status = str(item.get("claim_review_status", "")).strip().lower()
     claim_review_reviewer_id = str(item.get("claim_review_reviewer_id", "")).strip()
     claim_reviewed_at = str(item.get("claim_reviewed_at", "")).strip()
+    claim_review_product_name = str(item.get("claim_review_product_name", "")).strip()
+    claim_review_product_url = str(item.get("claim_review_product_url", "")).strip()
+    claim_support_excerpt = str(item.get("claim_support_excerpt", "")).strip()
     claim_review_signature = str(item.get("claim_review_signature", "")).strip()
     claim_review_key_id = str(item.get("claim_review_key_id", "")).strip()
     try:
@@ -318,6 +321,9 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
             "claim_review_status": claim_review_status,
             "claim_review_reviewer_id": claim_review_reviewer_id,
             "claim_reviewed_at": claim_reviewed_at,
+            "claim_review_product_name": claim_review_product_name,
+            "claim_review_product_url": claim_review_product_url,
+            "claim_support_excerpt": claim_support_excerpt,
             "claim_review_signature": claim_review_signature,
             "claim_review_key_id": claim_review_key_id,
         }
@@ -345,6 +351,9 @@ def normalize_evidence(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str
         "claim_review_status": claim_review_status,
         "claim_review_reviewer_id": claim_review_reviewer_id,
         "claim_reviewed_at": claim_reviewed_at,
+        "claim_review_product_name": claim_review_product_name,
+        "claim_review_product_url": claim_review_product_url,
+        "claim_support_excerpt": claim_support_excerpt,
         "claim_review_signature": claim_review_signature,
         "claim_review_key_id": claim_review_key_id,
         "claim_review_verified": claim_review_verified,
@@ -557,7 +566,15 @@ def audit_evidence(
     dimensions_covered = sorted({item["dimension"] for item in valid})
     criteria_covered = sorted({f'{item["dimension"]}.{item["criterion"]}' for item in valid})
     primary_count = sum(1 for item in valid if item["source_type"] == "primary")
-    reviewed_claims = [item for item in valid if item.get("claim_review_verified")]
+    canonical_product_url = canonical_url(product_url) if product_url and valid_http_url(product_url) else ""
+    reviewed_claims = [
+        item
+        for item in valid
+        if item.get("claim_review_verified")
+        and item.get("claim_review_product_name") == product_name.strip()
+        and canonical_product_url
+        and canonical_url(item.get("claim_review_product_url", "")) == canonical_product_url
+    ]
     reviewed_criteria = sorted(
         {f'{item["dimension"]}.{item["criterion"]}' for item in reviewed_claims}
     )
@@ -574,6 +591,7 @@ def audit_evidence(
 
     badge_eligible = (
         overall is not None
+        and bool(canonical_product_url)
         and len(valid) >= 12
         and len(source_sites) >= 6
         and len(dimensions_covered) == 3
@@ -665,6 +683,7 @@ def audit_evidence(
             "verified_findings": sum(1 for item in valid if item["source_verified"]),
             "claim_reviewed_findings": len(reviewed_claims),
             "claim_reviewed_criteria": len(reviewed_criteria),
+            "claim_review_product_scope": canonical_product_url or None,
             "primary_findings": primary_count,
             "dimensions_covered": dimensions_covered,
             "criteria_covered": len(criteria_covered),
@@ -715,7 +734,11 @@ def audit_evidence(
             (
                 "A signed snapshot proves retrieval, not semantic support. EVIDENCE-BACKED badge "
                 "eligibility therefore also requires signed Humanity Score claim-review attestations "
-                "covering all 12 rubric criteria."
+                "covering all 12 rubric criteria and bound to the audited product name and canonical product URL."
+            ),
+            (
+                "Each claim-review attestation includes a reviewer-supplied support excerpt so the "
+                "basis for the semantic judgment remains inspectable."
             ),
             (
                 "A source snapshot hash proves the bytes retrieved by the audit process; without an external "
