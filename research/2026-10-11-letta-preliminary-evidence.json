@@ -1,0 +1,172 @@
+{
+  "as_of": "2026-10-11",
+  "status": "PRELIMINARY_RESEARCH_NOT_AN_AUDIT",
+  "product_version_reference": "3.3.1",
+  "rubric_version_reference": "3.2.1",
+  "humanity_score": null,
+  "badge_eligible": false,
+  "badge_label": null,
+  "snapshot_attestations": "NOT_PERFORMED",
+  "human_claim_reviews": "NOT_PERFORMED",
+  "source_snapshot_sha256": null,
+  "source_retrieved_at": null,
+  "source_verified": false,
+  "scoring": "WITHHELD_PENDING_INDEPENDENT_REVIEW",
+  "method_note": "Reviewer-proposed directional codings, not issued Humanity Scores. Sources are public primary-party documentation. No signed snapshot or signed human review is represented.",
+  "correction_rule": "Evidence- or methodology-based corrections only; payment cannot buy a higher score or favorable conclusion.",
+  "product_name": "Letta",
+  "product_url": "https://www.letta.com/",
+  "findings": [
+    {
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "Letta Code exposes standard, strict, acceptEdits and unrestricted execution permission modes.",
+      "source": "https://docs.letta.com/configuration/permissions",
+      "source_type": "primary",
+      "proposed_impact": 2,
+      "proposed_confidence": 0.95,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Company-authored documentation establishes what is documented, not independently observed real-world performance."
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "In strict mode Letta Code requires a prompt before every tool call, while standard mode asks before approval-requiring actions.",
+      "source": "https://docs.letta.com/configuration/permissions",
+      "source_type": "primary",
+      "proposed_impact": 2,
+      "proposed_confidence": 0.95,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "The interactive CLI is documented to start in unrestricted mode by default; users must choose stricter controls."
+    },
+    {
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "Letta Code interactive CLI defaults to unrestricted permission mode, which automatically permits tool calls unless blocked by safeguards.",
+      "source": "https://docs.letta.com/configuration/permissions",
+      "source_type": "primary",
+      "proposed_impact": -1,
+      "proposed_confidence": 0.95,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "This documented default is a concern for unintended actions; actual deployment-specific configuration is unknown."
+    },
+    {
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Letta's desktop app lets a user view and directly edit an agent's memory, skills, channels and schedules.",
+      "source": "https://docs.letta.com/platform/desktop-app",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.9,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Editable state is not evidence that all executed downstream actions can be undone."
+    },
+    {
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Letta's desktop app surfaces sent and received channel messages, schedule run history and editable memory files.",
+      "source": "https://docs.letta.com/platform/desktop-app",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.95,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Company-authored documentation establishes what is documented, not independently observed real-world performance."
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Letta documents a free entry plan using BYOK and a usage-based API path for developer applications.",
+      "source": "https://docs.letta.com/pricing",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.9,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Company-authored documentation establishes what is documented, not independently observed real-world performance."
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "Letta's privacy policy says data sent to Letta-hosted services, including messages and responses, may be used for service improvement including future model training.",
+      "source": "https://www.letta.com/privacy-policy/",
+      "source_type": "primary",
+      "proposed_impact": -1,
+      "proposed_confidence": 0.95,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Policy states permitted use; does not prove any particular user's data was trained on."
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "The same Letta privacy policy distinguishes self-hosted model backends and says message/prompt data is not collected by Letta outside its hosted services.",
+      "source": "https://www.letta.com/privacy-policy/",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.9,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "This is limited to the deployment patterns specified by Letta."
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "Letta documents an open-source agent runtime, self-hosting, and model-provider choice.",
+      "source": "https://docs.letta.com/",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.9,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Model or deployment portability is not identical to zero switching cost."
+    },
+    {
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Letta publishes plan limits and prices including free BYOK, $20/month personal Pro, $20/month API plus usage charges, and $20/seat/month Teams Pro.",
+      "source": "https://docs.letta.com/pricing",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.95,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Prices may change; usage charges can increase total cost."
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Letta team permissions document organization roles and selective sharing of agents, with conversations private to their creator by default.",
+      "source": "https://docs.letta.com/teams/permissions",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.95,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Company-authored documentation establishes what is documented, not independently observed real-world performance."
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Letta documents proactive schedules, recurring tasks and autonomous agent execution while allowing users to set controls; the net effect on human work is not demonstrated.",
+      "source": "https://docs.letta.com/platform/desktop-app",
+      "source_type": "primary",
+      "proposed_impact": 0,
+      "proposed_confidence": 0.85,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "Real-world substitution and displacement cannot be inferred from feature documentation."
+    },
+    {
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "Letta provides a free BYOK route and publishes interfaces for local apps and command-line operation.",
+      "source": "https://docs.letta.com/pricing",
+      "source_type": "primary",
+      "proposed_impact": 1,
+      "proposed_confidence": 0.85,
+      "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+      "limitation": "BYOK may still incur third-party model costs and CLI use requires technical skill."
+    }
+  ],
+  "unknown_criteria": [
+    "human_connection.social_wellbeing"
+  ],
+  "open_issues": [
+    "Opposing documented impacts under agency.human_override and value_distribution.data_rights are intentionally not adjudicated.",
+    "No signed evidence or independent human claim-review attestations.",
+    "No measured human outcomes."
+  ]
+}
