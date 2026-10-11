@@ -11,10 +11,10 @@ Humanity Score is an evidence-backed AI product due-diligence framework. It eval
 2. **Evidence is criterion-specific.** A finding moves only the criterion it supports.
 3. **Independent source integrity is cryptographically gated.** A URL or caller-supplied hash is not verification. Badge eligibility requires valid Humanity Score Ed25519 snapshot attestations.
 4. **Semantic support is separately reviewed.** A signed snapshot proves retrieval, not that a submitted finding is true. EVIDENCE-BACKED status requires a separate signed human claim-review attestation for every rubric criterion.
-4. **Duplicate claims do not get extra weight.** Findings that represent the same underlying claim can share a `claim_id`; only the strongest-supported instance is counted.
-5. **Contradictions are surfaced.** Positive and negative evidence for the same criterion is shown as unresolved contradiction rather than silently hidden.
-6. **Human judgment is inspectable.** Impact and confidence are explicit fields with anchors and optional rationale/reviewer IDs.
-7. **Payment cannot buy a result.** Commercial payment does not change evidence, scoring, badge eligibility, or conclusions.
+5. **Duplicate claims do not get extra weight.** Findings that represent the same underlying claim can share a `claim_id`; only the strongest-supported instance is counted.
+6. **Contradictions are surfaced.** Positive and negative evidence for the same criterion is shown as unresolved contradiction rather than silently hidden.
+7. **Human judgment is inspectable.** Impact and confidence are explicit fields with anchors and optional rationale/reviewer IDs.
+8. **Payment cannot buy a result.** Commercial payment does not change evidence, scoring, badge eligibility, or conclusions.
 
 ## Rubric
 
@@ -104,12 +104,15 @@ This prevents missing evidence from appearing as neutral evidence.
 An audit can be labeled `EVIDENCE-BACKED` only when all of the following are true:
 
 - an overall score exists;
-- at least 6 accepted findings;
-- at least 3 distinct source sites;
+- an audited product URL that canonicalizes to a valid HTTP(S) URL;
+- at least 12 accepted findings;
+- at least 6 distinct source sites (subdomains of one site do not count separately);
 - all 3 dimensions covered;
-- at least 6 distinct criteria covered;
-- at least 2 primary-source findings;
-- at least 2 distinct source sites with valid Humanity Score Ed25519 snapshot attestations.
+- all 12 rubric criteria covered;
+- at least 3 primary-source findings;
+- at least 3 distinct source sites with valid Humanity Score Ed25519 snapshot attestations;
+- at least 12 valid product-bound signed Humanity Score human claim-review attestations covering all 12 criteria and at least 3 reviewed source sites;
+- no unresolved contradictions.
 
 Otherwise the audit is `PROVISIONAL` or `UNSCORED`.
 
