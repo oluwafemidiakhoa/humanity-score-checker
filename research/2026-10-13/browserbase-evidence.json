@@ -1,0 +1,174 @@
+{
+  "schema": "humanity-score.preliminary-source-ledger.v1",
+  "created_at_date": "2026-10-13",
+  "product_name": "Browserbase",
+  "company": "Browserbase",
+  "product_url": "https://www.browserbase.com/",
+  "product_version": "3.3.1",
+  "rubric_version": "3.2.1",
+  "status": "PRELIMINARY_RESEARCH_UNSCORED",
+  "score": null,
+  "badge_eligible": false,
+  "unverified_primary_source_urls": true,
+  "source_snapshots_signed": false,
+  "signed_human_reviews": false,
+  "company_reviewed": false,
+  "coverage_count": 11,
+  "criteria_covered": [
+    "agency.user_control",
+    "agency.reversibility",
+    "agency.transparency",
+    "agency.human_override",
+    "value_distribution.user_benefit",
+    "value_distribution.data_rights",
+    "value_distribution.lock_in",
+    "value_distribution.incentive_alignment",
+    "human_connection.collaboration",
+    "human_connection.substitution_risk",
+    "human_connection.accessibility"
+  ],
+  "unknown_criteria": [
+    "human_connection.social_wellbeing"
+  ],
+  "findings": [
+    {
+      "id": "browserbase-01",
+      "dimension": "agency",
+      "criterion": "user_control",
+      "finding": "The platform documents programmable browser sessions, model selection, live views and high-level Stagehand automation primitives; the application builder is responsible for the agent's policy.",
+      "source": "https://www.browserbase.com/enterprise",
+      "source_type": "primary",
+      "interpretation": "control",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-02",
+      "dimension": "agency",
+      "criterion": "reversibility",
+      "finding": "Browserbase presents sessions as isolated runtime units with project/session limits; documentation here does not establish that all external actions can be reversed after submission.",
+      "source": "https://www.browserbase.com/pricing",
+      "source_type": "primary",
+      "interpretation": "qualified",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-03",
+      "dimension": "agency",
+      "criterion": "transparency",
+      "finding": "Browserbase documents per-session live view, logs, screenshots and replays to inspect agent behavior and debug failures.",
+      "source": "https://www.browserbase.com/enterprise",
+      "source_type": "primary",
+      "interpretation": "control",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-04",
+      "dimension": "agency",
+      "criterion": "human_override",
+      "finding": "A first-party Stagehand template uses an askHuman tool to pause the browser agent for user input and then resume; this is a template capability, not a mandatory platform-wide gate.",
+      "source": "https://www.browserbase.com/templates/agent-with-human-in-loop",
+      "source_type": "primary",
+      "interpretation": "qualified",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-05",
+      "dimension": "value_distribution",
+      "criterion": "user_benefit",
+      "finding": "Browserbase documents browser, search and fetch infrastructure for agents handling workflows not exposed via conventional APIs, but does not quantify benefits for every deployment.",
+      "source": "https://www.browserbase.com/",
+      "source_type": "primary",
+      "interpretation": "documented_capability",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-06",
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "The Privacy Policy says browser data is not used to train generative AI models without affirmative consent; separately, customer-facing session recordings remain available for up to 30 days.",
+      "source": "https://www.browserbase.com/privacy-policy",
+      "source_type": "primary",
+      "interpretation": "mixed",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-07",
+      "dimension": "value_distribution",
+      "criterion": "data_rights",
+      "finding": "The August 2026 Trust Center notice adds ClickHouse for CDP log processing from September 14, except customers using BYOS for CDP logs; applicable customer configurations require clarification.",
+      "source": "https://trust.browserbase.com/",
+      "source_type": "primary",
+      "interpretation": "qualification",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-08",
+      "dimension": "value_distribution",
+      "criterion": "lock_in",
+      "finding": "The platform documents a model gateway for multiple providers and an open-source Stagehand SDK, while execution remains dependent on Browserbase-hosted browser infrastructure unless replaced.",
+      "source": "https://www.browserbase.com/enterprise",
+      "source_type": "primary",
+      "interpretation": "mixed",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-09",
+      "dimension": "value_distribution",
+      "criterion": "incentive_alignment",
+      "finding": "Published plans include free, $20 developer, $99 startup, and custom enterprise tiers with distinct usage meters and overage prices; actual invoices vary by use.",
+      "source": "https://www.browserbase.com/pricing",
+      "source_type": "primary",
+      "interpretation": "qualified",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-10",
+      "dimension": "human_connection",
+      "criterion": "collaboration",
+      "finding": "Enterprise documentation lists team SSO/SAML and live session inspection; the source does not measure collaboration or decision quality.",
+      "source": "https://www.browserbase.com/enterprise",
+      "source_type": "primary",
+      "interpretation": "documented_capability",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-11",
+      "dimension": "human_connection",
+      "criterion": "substitution_risk",
+      "finding": "Browserbase explicitly promotes agents completing workflows humans formerly perform, including job applications and HR portal tasks; direction/magnitude of human impact cannot be inferred from marketing.",
+      "source": "https://www.browserbase.com/use-case/ai-agents-for-hr",
+      "source_type": "primary",
+      "interpretation": "mixed",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    },
+    {
+      "id": "browserbase-12",
+      "dimension": "human_connection",
+      "criterion": "accessibility",
+      "finding": "A free plan and open-source Stagehand SDK lower experimentation barriers, though free-plan browser time and concurrent capacity are limited.",
+      "source": "https://www.browserbase.com/pricing",
+      "source_type": "primary",
+      "interpretation": "mixed",
+      "source_snapshot_verified": false,
+      "human_claim_review_signed": false
+    }
+  ],
+  "limitations": [
+    "The cited public company pages have been reviewed as text, not independently archived or cryptographically snapshotted.",
+    "Claims about features and policies do not establish performance in practice, actual individual harm or benefit, or legal compliance.",
+    "Impact/confidence codes were not assigned and no Humanity Score was computed or claimed.",
+    "Published legal/pricing policies may change and require confirmation at any commercial engagement."
+  ],
+  "correction_policy": "Accept evidenced corrections and rerun the methodology; commercial payment does not buy any score change, favorable rating, or conclusion."
+}
